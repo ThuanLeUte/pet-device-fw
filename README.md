@@ -43,3 +43,11 @@
 CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=n
 
 https://github.com/espressif/esp-idf/issues/7631
+
+
+
+# ST25R3911B reference source code
+
+https://www.st.com/content/st_com/en/products/embedded-software/st25-nfc-rfid-software/stsw-st25r002.html
+
+https://www.st.com/content/st_com/en/products/embedded-software/st25-nfc-rfid-software/stsw-stm8-nfc5.html
