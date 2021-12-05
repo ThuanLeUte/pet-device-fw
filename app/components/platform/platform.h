@@ -21,20 +21,20 @@
 #include "timer.h"
 
 /* Public defines ----------------------------------------------------- */
-#define ST25R95_N_SS_PIN                       (SPI_SS_PIN)           /*!< GPIO pin used for ST25R95 SPI SS                               */
-#define ST25R95_N_SS_PORT                      (-1)                   /*!< GPIO port used for ST25R95 SPI SS port                         */
+#define ST25R391X_SS_PIN                       (SPI_SS_PIN)           /*!< GPIO pin used for ST25R391X SPI SS                               */
+#define ST25R391X_SS_PORT                      (-1)                   /*!< GPIO port used for ST25R391X SPI SS port                         */
 
-#define ST25R95_N_IRQ_OUT_PIN                  (IRQ_OUT_PIN)          /*!< GPIO pin used for ST25R95 nIRQ_OUT                             */
-#define ST25R95_N_IRQ_OUT_PORT                 (-1)                   /*!< GPIO port used for ST25R95 nIRQ_OUT                            */
+#define ST25R391X_IRQ_OUT_PIN                  (IRQ_OUT_PIN)          /*!< GPIO pin used for ST25R391X nIRQ_OUT                             */
+#define ST25R391X_IRQ_OUT_PORT                 (-1)                   /*!< GPIO port used for ST25R391X nIRQ_OUT                            */
 
-#define ST25R95_N_IRQ_IN_PIN                   (IRQ_IN_PIN)           /*!< GPIO pin used for ST25R95 nIRQ_IN                              */
-#define ST25R95_N_IRQ_IN_PORT                  (-1)                   /*!< GPIO port used for ST25R95 nIRQ_IN                             */
+#define ST25R391X_IRQ_IN_PIN                   (IRQ_IN_PIN)           /*!< GPIO pin used for ST25R391X nIRQ_IN                              */
+#define ST25R391X_IRQ_IN_PORT                  (-1)                   /*!< GPIO port used for ST25R391X nIRQ_IN                             */
 
 #define PLATFORM_LED_PIN                       (-1)                   /*!< GPIO pin used for LED                                          */
 #define PLATFORM_LED_PORT                      (-1)                   /*!< GPIO port used for LED                                         */
 
-#define ST25R95_TAGDETECT_DEF_CALIBRATION      0x7C                   /*!< Tag Detection Calibration default value                        */
-#define ST25R95_TAGDETECT_CALIBRATE            true                   /*!< False: use default value, True: call calibration procedure     */
+#define ST25R391X_TAGDETECT_DEF_CALIBRATION      0x7C                 /*!< Tag Detection Calibration default value                        */
+#define ST25R391X_TAGDETECT_CALIBRATE            true                 /*!< False: use default value, True: call calibration procedure     */
 
 /*
 ******************************************************************************
@@ -66,7 +66,7 @@
 #define RFAL_FEATURE_NFC_DEP_BLOCK_MAX_LEN     (254U)     /*!< NFC-DEP Block/Payload length. Allowed values: 64, 128, 192, 254           */
 #define RFAL_FEATURE_NFC_RF_BUF_LEN            (258U)     /*!< RF buffer length used by RFAL NFC layer                                   */
 
-#define RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN      (512U)     /*!< ISO-DEP APDU max length.                                                  */
+#define RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN      (1024U)    /*!< ISO-DEP APDU max length.                                                  */
 #define RFAL_FEATURE_NFC_DEP_PDU_MAX_LEN       (512U)     /*!< NFC-DEP PDU max length.                                                   */
 
 
@@ -87,19 +87,19 @@
 #define platformTimerDestroy( timer )
 #define platformErrorHandle()
 
-#if !(ST25R95_INTERFACE_UART) /* ST25R95_INTERFACE_SPI */
+#if !(ST25R391X_INTERFACE_UART) /* ST25R391X_INTERFACE_SPI */
 /*!< SPI SS\CS: Chip|Slave Select                */
-#define platformSpiSelect()                    platformGpioClear(ST25R95_N_SS_PORT, ST25R95_N_SS_PIN)
+#define platformSpiSelect()                    platformGpioClear(ST25R391X_SS_PORT, ST25R391X_SS_PIN)
 
 /*!< SPI SS\CS: Chip|Slave Deselect              */
-#define platformSpiDeselect()                  platformGpioSet(ST25R95_N_SS_PORT, ST25R95_N_SS_PIN)
+#define platformSpiDeselect()                  platformGpioSet(ST25R391X_SS_PORT, ST25R391X_SS_PIN)
 
 /*!< SPI transceive                              */
 #define platformSpiTxRx(txBuf, rxBuf, len)     bsp_spi_transmit_receive(txBuf, rxBuf, len)
 
 #define platformUartTx(TxBuf, len)                        /*!< UART transceive                             */
 #define platformUartRx(RxBuf, len)                        /*!< UART transceive                             */
-#else /* !ST25R95_INTERFACE_SPI */
+#else /* ! ST25R391X_INTERFACE_SPI */
 #define platformSpiSelect()                               /*!< SPI SS\CS: Chip|Slave Select                */
 #define platformSpiDeselect()                             /*!< SPI SS\CS: Chip|Slave Deselect              */
 #define platformSpiTxRx(txBuf, rxBuf, len)                /*!< SPI transceive                              */
@@ -108,7 +108,7 @@
 #define platformUartTxIT(TxBuf, len)                      /*!< UART transceive                             */
 #define platformUartRxIT(RxBuf, len)                      /*!< UART transceive                             */
 #define platformUartReset()                               /*!< UART abort Tx/Rx and reset uart             */
-#endif /* ST25R95_INTERFACE_SPI */
+#endif /* ST25R391X_INTERFACE_SPI */
 
 
 /* Protect RFAL Worker/Task/Process from concurrent execution on multi thread platforms   */

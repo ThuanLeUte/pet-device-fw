@@ -18,13 +18,13 @@
 #include "platform_common.h"
 
 /* Public defines ----------------------------------------------------- */
-#define SPI_SS_PIN              (GPIO_NUM_12)   // NFC
-#define SPI_MOSI_PIN            (GPIO_NUM_23)   // NFC
-#define SPI_MISO_PIN            (GPIO_NUM_19)   // NFC
-#define SPI_SCLK_PIN            (GPIO_NUM_18)   // NFC
+#define SPI_SS_PIN              (TBD)   // NFC
+#define SPI_MOSI_PIN            (TBD)   // NFC
+#define SPI_MISO_PIN            (TBD)   // NFC
+#define SPI_SCLK_PIN            (TBD)   // NFC
 
-#define IRQ_OUT_PIN             (GPIO_NUM_4)    // NFC
-#define IRQ_IN_PIN              (GPIO_NUM_21)   // NFC
+#define IRQ_OUT_PIN             (-1)    // NFC
+#define IRQ_IN_PIN              (-1)   // NFC
 
 /* Public variables --------------------------------------------------- */
 /* Public function prototypes ----------------------------------------- */
