@@ -12,6 +12,7 @@
 
 /* Includes ----------------------------------------------------------------- */
 #include "bsp.h"
+#include "platform_common.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define MAX_HEX_STR           (4)
@@ -36,7 +37,7 @@ void bsp_init(void)
   bsp_spi_init();
 }
 
-void bsp_spi_transmit_receive(uint8_t *tx_data, uint8_t *rx_data, uint16_t len)
+void bsp_spi_transmit_receive(const uint8_t *tx_data, uint8_t *rx_data, uint16_t len)
 {
   esp_err_t ret;
   spi_transaction_t t;

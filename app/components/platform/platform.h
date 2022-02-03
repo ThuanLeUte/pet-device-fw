@@ -18,9 +18,11 @@
 #include "bsp.h"
 
 #include "st_errno.h"
-#include "timer.h"
 
 /* Public defines ----------------------------------------------------- */
+#define ST25R3911                              1
+
+#define ST25R_INT_PIN                          (-1)
 #define ST25R391X_SS_PIN                       (SPI_SS_PIN)           /*!< GPIO pin used for ST25R391X SPI SS                               */
 #define ST25R391X_SS_PORT                      (-1)                   /*!< GPIO port used for ST25R391X SPI SS port                         */
 
@@ -79,8 +81,8 @@
 #define platformGpioIsHigh(port, pin)          (gpio_get_level(pin) == 1)         /*!< Checks if the given LED is High                   */
 #define platformGpioIsLow(port, pin)           (gpio_get_level(pin) == 0)         /*!< Checks if the given LED is Low                    */
 
-#define platformTimerCreate(t)                 timerCalculateTimer(t)             /*!< Create a timer with the given time (ms)           */
-#define platformTimerIsExpired(timer)          timerIsExpired(timer)              /*!< Checks if the given timer is expired              */
+#define platformTimerCreate(t)                 xTaskGetTickCount() //timerCalculateTimer(t)             /*!< Create a timer with the given time (ms)           */
+#define platformTimerIsExpired(timer)          xTaskGetTickCount() //timerIsExpired(timer)              /*!< Checks if the given timer is expired              */
 #define platformDelay(t)                       vTaskDelay(pdMS_TO_TICKS(t))       /*!< Performs a delay for the given time (ms)          */
 #define platformGetSysTick()                   xTaskGetTickCount()                /*!< Get System Tick ( 1 tick = 1 ms)                  */
 #define platformLog(...)                       bsp_log_data(__VA_ARGS__)          /*!< Log  method                                       */
@@ -112,10 +114,17 @@
 
 
 /* Protect RFAL Worker/Task/Process from concurrent execution on multi thread platforms   */
-#define platformProtectWorker()                            
+#define platformProtectWorker()             
+#define platformProtectST25RComm()
+#define platformProtectST25RIrqStatus()
+#define platformIrqST25RPinInitialize()
+#define platformIrqST25RSetCallback(data)
 
 /* Unprotect RFAL Worker/Task/Process from concurrent execution on multi thread platforms */
-#define platformUnprotectWorker()                          
+#define platformUnprotectWorker()
+#define platformUnprotectST25RComm()
+#define platformUnprotectST25RIrqStatus()
+#define platformLedsInitialize()
 
 char *hex2Str(unsigned char *data, size_t dataLen);
 

@@ -370,7 +370,7 @@ typedef struct{
     uint8_t            DID;            /*!< Initiator's Device ID DID             */
     uint8_t            NAD;            /*!< Initiator's Node ID NAD               */
     uint8_t            BS;             /*!< Initiator's Bit Rates supported in Tx */
-    uint8_t            BR;             /*!< Initiator's Bit Rates supported in Rx */
+    uint8_t            BR_NFC;         /*!< Initiator's Bit Rates supported in Rx */
     uint8_t            LR;             /*!< Initiator's Length reduction          */
     uint8_t*           GB;             /*!< Initiator's General Bytes (Gi)        */
     uint8_t            GBLen;          /*!< Initiator's General Bytes length      */

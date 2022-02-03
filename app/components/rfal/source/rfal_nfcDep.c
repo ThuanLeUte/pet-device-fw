@@ -1996,7 +1996,7 @@ ReturnCode rfalNfcDepATR( const rfalNfcDepAtrParam* param, rfalNfcDepAtrRes *atr
     cfg.nad  = param->NAD;
     cfg.fwt  = RFAL_NFCDEP_MAX_FWT;
     cfg.dFwt = RFAL_NFCDEP_WT_DELTA;
-    cfg.br   = param->BR;
+    cfg.br   = param->BR_NFC;
     cfg.bs   = param->BS;
     cfg.lr   = param->LR;
     cfg.to   = RFAL_NFCDEP_WT_TRG_MAX;            /* Not used in Initiator mode */
