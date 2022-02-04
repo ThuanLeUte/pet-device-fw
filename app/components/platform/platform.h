@@ -30,8 +30,8 @@
 #define ST25R391X_IRQ_OUT_PIN                  (IO_NFC_IRQ_OUT_PIN)          /*!< GPIO pin used for ST25R391X nIRQ_OUT                             */
 #define ST25R391X_IRQ_OUT_PORT                 (-1)                   /*!< GPIO port used for ST25R391X nIRQ_OUT                            */
 
-#define ST25R391X_IRQ_IN_PIN                   (IO_NFC_IRQ_IN_PIN)           /*!< GPIO pin used for ST25R391X nIRQ_IN                              */
-#define ST25R391X_IRQ_IN_PORT                  (-1)                   /*!< GPIO port used for ST25R391X nIRQ_IN                             */
+#define ST25R391X_INT_PIN                   (IO_NFC_IRQ_IN_PIN)           /*!< GPIO pin used for ST25R391X nIRQ_IN                              */
+#define ST25R391X_INT_PORT                  (-1)                   /*!< GPIO port used for ST25R391X nIRQ_IN                             */
 
 #define PLATFORM_LED_PIN                       (-1)                   /*!< GPIO pin used for LED                                          */
 #define PLATFORM_LED_PORT                      (-1)                   /*!< GPIO port used for LED                                         */
@@ -48,18 +48,18 @@
 #define RFAL_FEATURE_WAKEUP_MODE               (false)    /*!< Enable/Disable RFAL support for the Wake-Up mode                          */
 
 #define RFAL_FEATURE_NFCA                      (true)     /*!< Enable/Disable RFAL support for NFC-A (ISO14443A)                         */
-#define RFAL_FEATURE_NFCB                      (false)    /*!< Enable/Disable RFAL support for NFC-B (ISO14443B)                         */
-#define RFAL_FEATURE_NFCF                      (false)    /*!< Enable/Disable RFAL support for NFC-F (FeliCa)                            */
-#define RFAL_FEATURE_NFCV                      (false)    /*!< Enable/Disable RFAL support for NFC-V (ISO15693)                          */
+#define RFAL_FEATURE_NFCB                      (true)    /*!< Enable/Disable RFAL support for NFC-B (ISO14443B)                         */
+#define RFAL_FEATURE_NFCF                      (true)    /*!< Enable/Disable RFAL support for NFC-F (FeliCa)                            */
+#define RFAL_FEATURE_NFCV                      (true)    /*!< Enable/Disable RFAL support for NFC-V (ISO15693)                          */
 
-#define RFAL_FEATURE_T1T                       (false)    /*!< Enable/Disable RFAL support for T1T (Topaz)                               */
+#define RFAL_FEATURE_T1T                       (true)    /*!< Enable/Disable RFAL support for T1T (Topaz)                               */
 #define RFAL_FEATURE_T2T                       (true)     /*!< Enable/Disable RFAL support for T2T                                       */
-#define RFAL_FEATURE_T4T                       (false)    /*!< Enable/Disable RFAL support for T4T                                       */
-#define RFAL_FEATURE_ST25TB                    (false)    /*!< Enable/Disable RFAL support for ST25TB                                    */
-#define RFAL_FEATURE_ST25xV                    (false)    /*!< Enable/Disable RFAL support for ST25TV/ST25DV                             */
+#define RFAL_FEATURE_T4T                       (true)    /*!< Enable/Disable RFAL support for T4T                                       */
+#define RFAL_FEATURE_ST25TB                    (true)    /*!< Enable/Disable RFAL support for ST25TB                                    */
+#define RFAL_FEATURE_ST25xV                    (true)    /*!< Enable/Disable RFAL support for ST25TV/ST25DV                             */
 
 #define RFAL_FEATURE_DYNAMIC_ANALOG_CONFIG     (false)    /*!< Enable/Disable Analog Configs to be dynamically updated (RAM)             */
-#define RFAL_FEATURE_DYNAMIC_POWER             (false)    /*!< Enable/Disable RFAL dynamic power support                                 */
+#define RFAL_FEATURE_DPO                       (false)    /*!< Enable/Disable RFAL dynamic power support                                 */
 #define RFAL_FEATURE_ISO_DEP                   (true)     /*!< Enable/Disable RFAL support for ISO-DEP (ISO14443-4)                      */
 #define RFAL_FEATURE_ISO_DEP_POLL              (true)     /*!< Enable/Disable RFAL support for Poller mode (PCD) ISO-DEP (ISO14443-4)    */
 #define RFAL_FEATURE_ISO_DEP_LISTEN            (false)    /*!< Enable/Disable RFAL support for Listen mode (PICC) ISO-DEP (ISO14443-4)   */
@@ -90,6 +90,21 @@
 #define platformTimerDestroy( timer )
 #define platformErrorHandle()
 
+#define PLATFORM_LED_FIELD_PIN       (-1)
+#define PLATFORM_LED_FIELD_PORT      (-1)
+#define PLATFORM_LED_A_PIN           (-1)
+#define PLATFORM_LED_A_PORT          (-1)
+#define PLATFORM_LED_B_PIN           (-1)
+#define PLATFORM_LED_B_PORT          (-1)
+#define PLATFORM_LED_F_PIN           (-1)
+#define PLATFORM_LED_F_PORT          (-1)
+#define PLATFORM_LED_V_PIN           (-1)
+#define PLATFORM_LED_V_PORT          (-1)
+#define PLATFORM_LED_AP2P_PIN        (-1)
+#define PLATFORM_LED_AP2P_PORT       (-1)
+#define PLATFORM_USER_BUTTON_PORT    (-1)
+#define PLATFORM_USER_BUTTON_PIN     (-1)
+
 #if !(ST25R391X_INTERFACE_UART) /* ST25R391X_INTERFACE_SPI */
 /*!< SPI SS\CS: Chip|Slave Select                */
 #define platformSpiSelect()                    platformGpioClear(ST25R391X_SS_PORT, ST25R391X_SS_PIN)
@@ -116,15 +131,15 @@
 
 /* Protect RFAL Worker/Task/Process from concurrent execution on multi thread platforms   */
 #define platformProtectWorker()             
-#define platformProtectST25RComm()
-#define platformProtectST25RIrqStatus()
-#define platformIrqST25RPinInitialize()
-#define platformIrqST25RSetCallback(data)
+#define platformProtectST25R391xComm()
+#define platformProtectST25R391xIrqStatus()
+#define platformIrqST25R3911PinInitialize()
+#define platformIrqST25R3911SetCallback(data)
 
 /* Unprotect RFAL Worker/Task/Process from concurrent execution on multi thread platforms */
 #define platformUnprotectWorker()
-#define platformUnprotectST25RComm()
-#define platformUnprotectST25RIrqStatus()
+#define platformUnprotectST25R391xComm()
+#define platformUnprotectST25R391xIrqStatus()
 #define platformLedsInitialize()
 
 char *hex2Str(unsigned char *data, size_t dataLen);

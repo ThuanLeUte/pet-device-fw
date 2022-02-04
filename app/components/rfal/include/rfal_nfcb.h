@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 /*
  *      PROJECT:   ST25R391x firmware
@@ -66,10 +71,10 @@
  ******************************************************************************
  */
 
-#define RFAL_NFCB_FWTSENSB                       7680U                /*!< NFC-B FWT(SENSB)  Digital 2.0  B.3        */
-#define RFAL_NFCB_DFWT                           49152U               /*!< NFC-B dFWT Delta 2.0  7.9.1.3 & B.3       */
-#define RFAL_NFCB_DTPOLL_10                      rfalConvMsTo1fc(20)  /*!< NFC-B Delta Tb Poll  Digital 1.0  A.2     */
-#define RFAL_NFCB_DTPOLL_20                      rfalConvMsTo1fc(17)  /*!< NFC-B Delta Tb Poll  Digital 2.1  B.3     */
+#define RFAL_NFCB_FWTSENSB                       7680U                /*!< NFC-B FWT(SENSB)  Digital 1.1  A.3        */
+#define RFAL_NFCB_DTPOLL                         49152U               /*!< NFC-B Delta Tb Poll Digital 1.1  A.3      */
+#define RFAL_NFCB_DFWT_11                        rfalConvMsTo1fc(17)  /*!< NFC-B dFWT (16.4ms)  Digital 1.1  A.3     */
+#define RFAL_NFCB_DFWT_10                        rfalConvMsTo1fc(20)  /*!< NFC-B dFWT (20ms)  Digital 1.0  A.2       */
 
 #define RFAL_NFCB_AFI                            0x00U   /*!< NFC-B default Application Family   Digital 1.1 7.6.1.1 */
 #define RFAL_NFCB_PARAM                          0x00U   /*!< NFC-B default SENSB_REQ PARAM                          */
@@ -106,9 +111,6 @@
 
 /*! Get device's FSCI given its SENSB_RES  Digital 1.1 7.6.2  */
 #define rfalNfcbGetFSCI( sensbRes )        ((((rfalNfcbSensbRes*)(sensbRes))->protInfo.FsciProType >> RFAL_NFCB_SENSB_RES_FSCI_SHIFT) & RFAL_NFCB_SENSB_RES_FSCI_MASK )
-
-/*! Checks if the given NFC-B device indicates ISO-DEP support */
-#define rfalNfcbIsIsoDepSupported( dev )  ( (((rfalNfcbListenDevice*)(dev))->sensbRes.protInfo.FsciProType & RFAL_NFCB_SENSB_RES_PROTO_ISO_MASK) != 0U )
 
 /*
 ******************************************************************************
@@ -313,7 +315,7 @@ ReturnCode rfalNfcbPollerTechnologyDetection( rfalComplianceMode compMode, rfalN
  * 
  * This function is used to perform collision resolution for detection in case 
  * of multiple NFC Forum Devices with Technology B detected. 
- * Target with valid SENSB_RES will be stored in nfcbDevList and devCnt incremented.  
+ * Target with valid SENSB_RES will be stored in devInfo and nfcbDevCount incremented.  
  *
  * \param[in]  compMode    : compliance mode to be performed
  * \param[in]  devLimit    : device limit value, and size nfcbDevList
@@ -339,7 +341,7 @@ ReturnCode rfalNfcbPollerCollisionResolution( rfalComplianceMode compMode, uint8
  * 
  * This function is used to perform collision resolution for detection in case 
  * of multiple NFC Forum Devices with Technology B are detected. 
- * Target with valid SENSB_RES will be stored in nfcbDevList and devCnt incremented.  
+ * Target with valid SENSB_RES will be stored in devInfo and nfcbDevCount incremented.  
  * 
  * This method provides the means to perform a collision resolution loop with specific
  * initial and end number of slots. This allows to user to start the loop already with 
@@ -366,87 +368,6 @@ ReturnCode rfalNfcbPollerCollisionResolution( rfalComplianceMode compMode, uint8
  */
 ReturnCode rfalNfcbPollerSlottedCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcbSlots initSlots, rfalNfcbSlots endSlots, rfalNfcbListenDevice *nfcbDevList, uint8_t *devCnt, bool *colPending );
 
-/*! 
- *****************************************************************************
- * \brief  NFC-B Poller Start Collision Resolution
- *  
- * It starts the NFC-B Collision resolution  Listener device/card (PICC) as 
- * defined in Activity 1.1  9.3.5
- * 
- * This function is used to trigger the collision resolution for detection in case 
- * of multiple NFC Forum Devices with Technology B detected. 
- * Target with valid SENSB_RES will be stored in nfcbDevList and devCnt incremented.  
- *
- * \param[in]  compMode    : compliance mode to be performed
- * \param[in]  devLimit    : device limit value, and size nfcbDevList
- * \param[out] nfcbDevList : NFC-B listener device info
- * \param[out] devCnt      : devices found counter
- *
- * \return ERR_WRONG_STATE  : RFAL not initialized or mode not set
- * \return ERR_PARAM        : Invalid parameters
- * \return ERR_IO           : Generic internal error
- * \return ERR_PROTO        : Protocol error detected
- * \return ERR_NONE         : No error
- *****************************************************************************
- */
-ReturnCode rfalNfcbPollerStartCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcbListenDevice *nfcbDevList, uint8_t *devCnt );
-
-/*! 
- *****************************************************************************
- * \brief  NFC-B Poller Start Collision Resolution Slotted
- *  
- * Starts NFC-B Collision resolution Listener device/card (PICC). The sequence can 
- * be configured to be according to NFC Forum Activity 1.1  9.3.5, ISO10373
- * or EMVCo 
- * 
- * This function is used to trigger the collision resolution for detection in case 
- * of multiple NFC Forum Devices with Technology B are detected. 
- * Target with valid SENSB_RES will be stored in nfcbDevList and devCnt incremented.  
- * 
- * This method provides the means to perform a collision resolution loop with specific
- * initial and end number of slots. This allows to user to start the loop already with 
- * greater number of slots, and or limit the end number of slots. At the end a flag
- * indicating whether there were collisions pending is returned.
- * 
- * If RFAL_COMPLIANCE_MODE_ISO is used \a initSlots must be set to RFAL_NFCB_SLOT_NUM_1
- *  
- *
- * \param[in]  compMode    : compliance mode to be performed
- * \param[in]  devLimit    : device limit value, and size nfcbDevList
- * \param[in]  initSlots   : number of slots to open initially 
- * \param[in]  endSlots    : number of slots when to stop collision resolution 
- * \param[out] nfcbDevList : NFC-B listener device info
- * \param[out] devCnt      : devices found counter
- * \param[out] colPending  : flag indicating whether collision are still pending
- *
- * \return ERR_WRONG_STATE  : RFAL not initialized or mode not set
- * \return ERR_PARAM        : Invalid parameters
- * \return ERR_IO           : Generic internal error
- * \return ERR_PROTO        : Protocol error detected
- * \return ERR_NONE         : No error
- *****************************************************************************
- */
-ReturnCode rfalNfcbPollerStartSlottedCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcbSlots initSlots, rfalNfcbSlots endSlots, rfalNfcbListenDevice *nfcbDevList, uint8_t *devCnt, bool *colPending );
-
-/*!
- *****************************************************************************
- *  \brief  NFC-B Get Collision Resolution Status
- *
- *  Returns the Collision Resolution status
- *
- *  \return ERR_BUSY         : Operation is ongoing
- *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
- *  \return ERR_PARAM        : Invalid parameters
- *  \return ERR_IO           : Generic internal error
- *  \return ERR_TIMEOUT      : Timeout error
- *  \return ERR_PAR          : Parity error detected
- *  \return ERR_CRC          : CRC error detected
- *  \return ERR_FRAMING      : Framing error detected
- *  \return ERR_PROTO        : Protocol error detected
- *  \return ERR_NONE         : No error, activation successful
- *****************************************************************************
- */
-ReturnCode rfalNfcbPollerGetCollisionResolutionStatus( void );
 
 /*! 
  *****************************************************************************
@@ -461,6 +382,7 @@ ReturnCode rfalNfcbPollerGetCollisionResolutionStatus( void );
  *****************************************************************************
  */
 uint32_t rfalNfcbTR2ToFDT( uint8_t tr2Code );
+
 
 #endif /* RFAL_NFCB_H */
 

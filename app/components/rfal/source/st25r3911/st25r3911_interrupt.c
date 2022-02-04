@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -63,7 +68,6 @@ typedef struct
     void      (*callback)(void);     /*!< call back function for 3911 interrupt               */
     uint32_t  status;                /*!< latest interrupt status                             */
     uint32_t  mask;                  /*!< Interrupt mask. Negative mask = ST25R3911 mask regs */
-    bool      hasNRE;                /*!< Last IRQ had NRE flag                               */
 }t_st25r3911Interrupt;
 
 /*
@@ -74,9 +78,6 @@ typedef struct
 
 static volatile t_st25r3911Interrupt st25r3911interrupt; /*!< Instance of ST25R3911 interrupt */
 
-
-static void st25r3911IRQCheck( uint32_t irqStatus );
-
 /*
 ******************************************************************************
 * GLOBAL FUNCTIONS
@@ -84,13 +85,13 @@ static void st25r3911IRQCheck( uint32_t irqStatus );
 */
 void st25r3911InitInterrupts( void )
 {
-    platformIrqST25RPinInitialize();
-    platformIrqST25RSetCallback( st25r3911Isr );
+    platformIrqST25R3911PinInitialize();
+    platformIrqST25R3911SetCallback( st25r3911Isr );
     
     st25r3911interrupt.callback     = NULL;
     st25r3911interrupt.prevCallback = NULL;
-    st25r3911interrupt.status       = ST25R3911_IRQ_MASK_NONE;
-    st25r3911interrupt.mask         = ST25R3911_IRQ_MASK_NONE;
+    st25r3911interrupt.status       = 0;
+    st25r3911interrupt.mask         = 0;
     
     /* Initialize LEDs if existing and defined */
     platformLedsInitialize();
@@ -119,11 +120,10 @@ void st25r3911CheckForReceivedInterrupts( void )
     uint8_t  iregs[ST25R3911_INT_REGS_LEN];
     uint32_t irqStatus; 
 
-    irqStatus = ST25R3911_IRQ_MASK_NONE;
     ST_MEMSET( iregs, (int32_t)(ST25R3911_IRQ_MASK_ALL & 0xFFU), ST25R3911_INT_REGS_LEN );  /* MISRA 10.3 */
         
     /* In case the IRQ is Edge (not Level) triggered read IRQs until done */
-    while( platformGpioIsHigh( ST25R_INT_PORT, ST25R_INT_PIN ) )
+    while( platformGpioIsHigh( ST25R391X_INT_PORT, ST25R391X_INT_PIN ) )
     {
         st25r3911ReadMultipleRegisters(ST25R3911_REG_IRQ_MAIN, iregs, sizeof(iregs));
        
@@ -145,18 +145,12 @@ void st25r3911CheckForReceivedInterrupts( void )
         }
 #endif /* PLATFORM_LED_RX_PIN */
        
-        irqStatus |= (uint32_t)iregs[0];
+        irqStatus  = (uint32_t)iregs[0];
         irqStatus |= (uint32_t)iregs[1]<<8;
         irqStatus |= (uint32_t)iregs[2]<<16;
+        /* forward all interrupts, even masked ones to application. */
+        st25r3911interrupt.status |= irqStatus;
     }
-    
-    /* Forward all interrupts, even masked ones to application. */
-    platformProtectST25RIrqStatus();
-    st25r3911interrupt.status |= irqStatus;
-    platformUnprotectST25RIrqStatus();
- 
-    /* Check received IRQs */
-    st25r3911IRQCheck( irqStatus );
 }
 
 
@@ -190,15 +184,13 @@ uint32_t st25r3911WaitForInterruptsTimed(uint32_t mask, uint16_t tmo)
     do 
     {
         status = (st25r3911interrupt.status & mask);
-    } while( ( !platformTimerIsExpired( tmr ) || (tmo == 0U)) && (status == 0U) );
+    } while( (!platformTimerIsExpired(tmr)) && (status == 0U) );
 
     status = st25r3911interrupt.status & mask;
     
-    platformTimerDestroy(tmr);
-    
-    platformProtectST25RIrqStatus();
+    platformProtectST25R391xIrqStatus();
     st25r3911interrupt.status &= ~status;
-    platformUnprotectST25RIrqStatus();
+    platformUnprotectST25R391xIrqStatus();
     
     return status;
 }
@@ -208,11 +200,11 @@ uint32_t st25r3911GetInterrupt(uint32_t mask)
     uint32_t irqs;
 
     irqs = (st25r3911interrupt.status & mask);
-    if (irqs != ST25R3911_IRQ_MASK_NONE)
+    if (irqs != 0U)
     {
-        platformProtectST25RIrqStatus();
+        platformProtectST25R391xIrqStatus();
         st25r3911interrupt.status &= ~irqs;
-        platformUnprotectST25RIrqStatus();
+        platformUnprotectST25R391xIrqStatus();
     }
     return irqs;
 }
@@ -233,9 +225,9 @@ void st25r3911ClearInterrupts( void )
 
     st25r3911ReadMultipleRegisters(ST25R3911_REG_IRQ_MAIN, iregs, 3);
 
-    platformProtectST25RIrqStatus();
+    platformProtectST25R391xIrqStatus();
     st25r3911interrupt.status = 0;
-    platformUnprotectST25RIrqStatus();
+    platformUnprotectST25R391xIrqStatus();
     return;
 }
 
@@ -249,40 +241,5 @@ void st25r3911IRQCallbackRestore( void )
 {
     st25r3911interrupt.callback     = st25r3911interrupt.prevCallback;
     st25r3911interrupt.prevCallback = NULL;
-}
-
-
-static void st25r3911IRQCheck( uint32_t irqStatus )
-{
-    /*******************************************************************************/
-    /* REMARK: Silicon workaround ST25R3911 Errata #1.6                            */
-    /* Repetitive I_nre in EMV mode when I_txe is not read                         */
-    /* Rarely due to timing reason, the interrupt I_nre repeats several times.     */
-    /*******************************************************************************/
-    
-    /* If NRT has been signaled without any other IRQ */
-    if( irqStatus == (ST25R3911_IRQ_MASK_NRE | ST25R3911_IRQ_MASK_TIM) )
-    {
-        /* If NRT was received on the last ISR as well */
-        if( st25r3911interrupt.hasNRE )
-        {
-            /* Disabling the NRT's EMV mode and and sending a Clear command stops this condition  */
-            st25r3911ClrRegisterBits( ST25R3911_REG_GPT_CONTROL, ST25R3911_REG_GPT_CONTROL_nrt_emv );
-            st25r3911ExecuteCommand( ST25R3911_CMD_CLEAR_FIFO );
-            st25r3911SetRegisterBits( ST25R3911_REG_GPT_CONTROL, ST25R3911_REG_GPT_CONTROL_nrt_emv );
-            
-            /* If RFAL is being used and a Transceive is ongoing it will fail with NRE or the  *
-             * sanity timer will conclude the ongoing transceive                               */
-            
-            st25r3911SetRegisterBits( ST25R3911_REG_GPT_CONTROL, ST25R3911_REG_GPT_CONTROL_nrt_emv );
-        }
-        
-        st25r3911interrupt.hasNRE = true;
-    }
-    else
-    {
-        st25r3911interrupt.hasNRE = false;
-    }
-    /*******************************************************************************/
 }
 

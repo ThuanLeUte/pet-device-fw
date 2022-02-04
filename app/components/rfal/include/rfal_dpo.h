@@ -2,10 +2,16 @@
 /******************************************************************************
   * @attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        http://www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 /*
  *      PROJECT:   ST25R391x firmware
@@ -37,7 +42,7 @@
  * \brief RFAL Hardware Abstraction Layer
  * @{
  *
- * \addtogroup DPO
+ * \addtogroup DynamicPower
  * \brief RFAL Dynamic Power Module
  * @{
  * 
@@ -102,7 +107,7 @@ void rfalDpoInitialize( void );
  *****************************************************************************
  * \brief  Set the measurement methode
  *  
- * This function sets the measurement method used for reference measurement.
+ * This function sets the measurement methode used for reference measurement.
  * Based on the measurement the power will then be adjusted
  *  
  * \param[in]  dpoMeasureFunc: callback of measurement function
@@ -150,12 +155,11 @@ ReturnCode rfalDpoTableRead( rfalDpoEntry* tblBuf, uint8_t tblBufEntries, uint8_
  * It measures the current output and adjusts the power accordingly to 
  * the dynamic power table  
  * 
- * \return ERR_NONE        : No error
- * \return ERR_PARAM       : if configTbl is invalid or parameters are invalid
- * \return ERR_WRONG_STATE : if the current state is valid for DPO Adjustment
+ * \return ERR_NONE    : No error
+ * \return ERR_PARAM   : if configTbl is invalid or parameters are invalid
  *****************************************************************************
  */
-ReturnCode rfalDpoAdjust( void );
+ReturnCode rfalDpoAdjust(void);
 
 /*! 
  *****************************************************************************

@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -41,17 +46,6 @@
 #include "st25r3911_interrupt.h"
 #include "utils.h"
 
-
-/*
- ******************************************************************************
- * ENABLE SWITCH
- ******************************************************************************
- */
- 
-#ifndef ST25R3911
-#error "RFAL: Missing ST25R device selection. Please globally define ST25R3911."
-#endif /* ST25R3911 */
-
 /*
 ******************************************************************************
 * LOCAL DEFINES
@@ -61,12 +55,6 @@
 #define ST25R3911_OSC_STABLE_TIMEOUT           10U /*!< Timeout for Oscillator to get stable, datasheet: 700us, take 5 ms */
 #define ST25R3911_CA_TIMEOUT                   10U /*!< Timeout for Collision Avoidance command                           */
 #define ST25R3911_TOUT_CALIBRATE_CAP_SENSOR    4U  /*!< Max duration Calibrate Capacitive Sensor command   Datasheet: 3ms */
-                                                  
-#define ST25R3911_TEST_REG_PATTERN             0x33U /*!< Register Read Write test pattern used during self test          */
-#define ST25R3911_TEST_WU_TOUT                 12U   /*!< Timetout used on WU timer during self test                      */
-#define ST25R3911_TEST_TMR_TOUT                20U   /*!< Timetout used during self test                                  */
-#define ST25R3911_TEST_TMR_TOUT_DELTA          2U    /*!< Timetout used during self test                                  */
-#define ST25R3911_TEST_TMR_TOUT_8FC            (ST25R3911_TEST_TMR_TOUT * 1695U)  /*!< Timeout in 8/fc                    */
 
 /*
 ******************************************************************************
@@ -105,15 +93,15 @@ void st25r3911TxRxOff( void )
 }
 
 
-ReturnCode st25r3911OscOn( void )
+void st25r3911OscOn( void )
 {
-    /* Check if oscillator is already turned on and stable                                                */
-    /* Use ST25R3911_REG_OP_CONTROL_en instead of ST25R3911_REG_AUX_DISPLAY_osc_ok to be on the safe side */
+    /* Check if oscillator is already turned on and stable                                                */        
+    /* Use ST25R3911_REG_OP_CONTROL_en instead of ST25R3911_REG_AUX_DISPLAY_osc_ok to be on the safe side */    
     if( !st25r3911CheckReg( ST25R3911_REG_OP_CONTROL, ST25R3911_REG_OP_CONTROL_en, ST25R3911_REG_OP_CONTROL_en ) )
     {
         /* Clear any eventual previous oscillator IRQ */
         st25r3911GetInterrupt( ST25R3911_IRQ_MASK_OSC );
-
+      
         /* enable oscillator frequency stable interrupt */
         st25r3911EnableInterrupts(ST25R3911_IRQ_MASK_OSC);
 
@@ -125,89 +113,32 @@ ReturnCode st25r3911OscOn( void )
         st25r3911DisableInterrupts(ST25R3911_IRQ_MASK_OSC);
     }
     
-    /* Double check that OSC_OK signal is set */
-    if( !st25r3911CheckReg( ST25R3911_REG_AUX_DISPLAY, ST25R3911_REG_AUX_DISPLAY_osc_ok, ST25R3911_REG_AUX_DISPLAY_osc_ok ) )
-    {
-        return ERR_SYSTEM;
-    }
-    
-    return ERR_NONE;
 }
 
 
-ReturnCode st25r3911Initialize(void)
+void st25r3911Initialize(void)
 {
     uint16_t vdd_mV;
-    ReturnCode ret;
 
-    /* Ensure a defined chip select state */
-    platformSpiDeselect();
-
-    /* Execute a Set Default on ST25R3911 */
+    /* first, reset the st25r3911 */
     st25r3911ExecuteCommand(ST25R3911_CMD_SET_DEFAULT);
 
-    /* Set Registers which are not affected by Set default command to default value */
-    st25r3911WriteRegister(ST25R3911_REG_OP_CONTROL, 0x00);
-    st25r3911WriteRegister(ST25R3911_REG_IO_CONF1, ST25R3911_REG_IO_CONF1_osc);
-    st25r3911WriteRegister(ST25R3911_REG_IO_CONF2, 0x00);
-
-    
-    /* Enable pull downs on miso line */
-    st25r3911ModifyRegister(ST25R3911_REG_IO_CONF2, 0x00,
+        
+    /* enable pull downs on miso line */
+    st25r3911ModifyRegister(ST25R3911_REG_IO_CONF2, 0, 
             ST25R3911_REG_IO_CONF2_miso_pd1 |
             ST25R3911_REG_IO_CONF2_miso_pd2);
 
+    /* after reset all interrupts are enabled. so disable them at first */
+    st25r3911DisableInterrupts(ST25R3911_IRQ_MASK_ALL);
+    /* and clear them, just to be sure... */
+    st25r3911ClearInterrupts();
+
+    /* trim settings for VHBR board, will anyway changed later on */
+    st25r3911WriteRegister(ST25R3911_REG_ANT_CAL_TARGET, 0x80);
     
-    if( !st25r3911CheckChipID( NULL ) )
-    {
-        platformErrorHandle();
-        return ERR_HW_MISMATCH;
-    }
-
-    st25r3911InitInterrupts();
-
-#ifdef ST25R_SELFTEST
-    /******************************************************************************
-     * Check communication interface: 
-     *  - write a pattern in a register
-     *  - reads back the register value
-     *  - return ERR_IO in case the read value is different
-     */
-    st25r3911WriteRegister( ST25R3911_REG_BIT_RATE, ST25R3911_TEST_REG_PATTERN );
-    if( !st25r3911CheckReg( ST25R3911_REG_BIT_RATE, (ST25R3911_REG_BIT_RATE_mask_rxrate | ST25R3911_REG_BIT_RATE_mask_txrate), ST25R3911_TEST_REG_PATTERN ) )
-    {
-        platformErrorHandle();
-        return ERR_IO;
-    }
-    /* Restore default value */
-    st25r3911WriteRegister( ST25R3911_REG_BIT_RATE, 0x00 );
-
-    /*
-     * Check IRQ Handling:
-     *  - use the Wake-up timer to trigger an IRQ
-     *  - wait the Wake-up timer interrupt
-     *  - return ERR_TIMEOUT when the Wake-up timer interrupt is not received
-     */
-    st25r3911WriteRegister( ST25R3911_REG_WUP_TIMER_CONTROL, (ST25R3911_REG_WUP_TIMER_CONTROL_wur|ST25R3911_REG_WUP_TIMER_CONTROL_wto) );
-    st25r3911EnableInterrupts( ST25R3911_IRQ_MASK_WT );
-    st25r3911ExecuteCommand( ST25R3911_CMD_START_WUP_TIMER );
-    if(st25r3911WaitForInterruptsTimed( ST25R3911_IRQ_MASK_WT, ST25R3911_TEST_WU_TOUT) == 0U )
-    {
-        platformErrorHandle();
-        return ERR_TIMEOUT;
-    }
+    st25r3911OscOn();
     
-    st25r3911DisableInterrupts( ST25R3911_IRQ_MASK_WT );
-    st25r3911WriteRegister( ST25R3911_REG_WUP_TIMER_CONTROL, 0U );
-    /*******************************************************************************/
-#endif /* ST25R_SELFTEST */
-
-    ret = st25r3911OscOn();
-    if( ret != ERR_NONE )
-    {
-        return ret;
-    }
-
     /* Measure vdd and set sup3V bit accordingly */
     vdd_mV = st25r3911MeasureVoltage(ST25R3911_REG_REGULATOR_CONTROL_mpsv_vdd);
 
@@ -217,46 +148,8 @@ ReturnCode st25r3911Initialize(void)
 
     /* Make sure Transmitter and Receiver are disabled */
     st25r3911TxRxOff();
-
     
-#ifdef ST25R_SELFTEST_TIMER
-    /******************************************************************************
-     * Check SW timer operation :
-     *  - use the General Purpose timer to measure an amount of time
-     *  - test whether an interrupt is seen when less time was given
-     *  - test whether an interrupt is seen when sufficient time was given
-     */
-    
-    st25r3911EnableInterrupts( ST25R3911_IRQ_MASK_GPE );
-    st25r3911StartGPTimer_8fcs( (uint16_t)ST25R3911_TEST_TMR_TOUT_8FC, ST25R3911_REG_GPT_CONTROL_gptc_no_trigger );
-    if( st25r3911WaitForInterruptsTimed(ST25R3911_IRQ_MASK_GPE, (ST25R3911_TEST_TMR_TOUT - ST25R3911_TEST_TMR_TOUT_DELTA)) != 0U )
-    {
-        platformErrorHandle();
-        return ERR_SYSTEM;
-    }
-    
-    /* Stop all activities to stop the GP timer */
-    st25r3911ExecuteCommand( ST25R3911_CMD_CLEAR_FIFO );
-    (void)st25r3911GetInterrupt( ST25R3911_IRQ_MASK_GPE );
-    st25r3911StartGPTimer_8fcs( (uint16_t)ST25R3911_TEST_TMR_TOUT_8FC, ST25R3911_REG_GPT_CONTROL_gptc_no_trigger );
-    if(st25r3911WaitForInterruptsTimed( ST25R3911_IRQ_MASK_GPE, (ST25R3911_TEST_TMR_TOUT + ST25R3911_TEST_TMR_TOUT_DELTA)) == 0U )
-    {
-        platformErrorHandle();
-        return ERR_SYSTEM;
-    }
-    
-    /* Stop all activities to stop the GP timer */
-    st25r3911ExecuteCommand( ST25R3911_CMD_CLEAR_FIFO );                           
-    /*******************************************************************************/
-#endif /* ST25R_SELFTEST_TIMER */
-    
-
-    /* After reset all interrupts are enabled. so disable them at first */
-    st25r3911DisableInterrupts( ST25R3911_IRQ_MASK_ALL );
-    /* And clear them, just to be sure... */
-    st25r3911ClearInterrupts();
-
-    return ERR_NONE;
+    return;
 }
 
 void st25r3911Deinitialize(void)
@@ -275,15 +168,19 @@ ReturnCode st25r3911AdjustRegulators(uint16_t* result_mV)
     uint8_t io_conf2;
     ReturnCode err = ERR_NONE;
 
-    /* Reset logic and set regulated voltages to be defined by result of Adjust Regulators command */
-    st25r3911SetRegisterBits( ST25R3911_REG_REGULATOR_CONTROL, ST25R3911_REG_REGULATOR_CONTROL_reg_s );
-    st25r3911ClrRegisterBits( ST25R3911_REG_REGULATOR_CONTROL, ST25R3911_REG_REGULATOR_CONTROL_reg_s );
+    /* first check the status of the reg_s bit in ST25R3911_REG_VREG_DEF register.
+       if this bit is set adjusting the regulators is not allowed */
+    st25r3911ReadRegister(ST25R3911_REG_REGULATOR_CONTROL, &result);
+
+    if ((result & ST25R3911_REG_REGULATOR_CONTROL_reg_s) != 0U)
+    {
+        return ERR_REQUEST;
+    }
 
     st25r3911ExecuteCommandAndGetResult(ST25R3911_CMD_ADJUST_REGULATORS,
                                     ST25R3911_REG_REGULATOR_RESULT,
                                     5,
                                     &result);
-  
     st25r3911ReadRegister(ST25R3911_REG_IO_CONF2, &io_conf2);
 
     result >>= ST25R3911_REG_REGULATOR_RESULT_shift_reg;
@@ -351,7 +248,7 @@ ReturnCode st25r3911CalibrateCapacitiveSensor(uint8_t* result)
     uint8_t    res;
     
     /* Clear Manual calibration values to enable automatic calibration mode */
-    st25r3911ClrRegisterBits( ST25R3911_REG_CAP_SENSOR_CONTROL, ST25R3911_REG_CAP_SENSOR_CONTROL_mask_cs_mcal );
+    st25r3911ClrRegisterBits( ST25R3911_REG_CAP_SENSOR_CONTROL, ST25R3916_REG_CAP_SENSOR_CONTROL_mask_cs_mcal );
     
     /* Execute automatic calibration */
     ret = st25r3911ExecuteCommandAndGetResult( ST25R3911_CMD_CALIBRATE_C_SENSOR, ST25R3911_REG_CAP_SENSOR_RESULT, ST25R3911_TOUT_CALIBRATE_CAP_SENSOR, &res );
@@ -607,7 +504,7 @@ ReturnCode st25r3911GetRegsDump(uint8_t* resRegDump, uint8_t* sizeRegDump)
     uint8_t regIt;
     uint8_t regDump[ST25R3911_REG_IC_IDENTITY+1U];
     
-    if( (sizeRegDump == NULL) || (resRegDump == NULL) )
+    if(!sizeRegDump || !resRegDump)
     {
         return ERR_PARAM;
     }
@@ -699,7 +596,7 @@ ReturnCode st25r3911GetRSSI( uint16_t *amRssi, uint16_t *pmRssi )
     /*******************************************************************************/
     /* MISRA 8.9 An object should be defined at block scope if its identifier only appears in a single function */
     /*< ST25R3911  RSSI Display Reg values:0  1   2   3   4   5   6    7    8   9    a     b    c    d  e  f    */
-    const uint16_t st25r3911Rssi2mV[] = { 10 ,20 ,27 ,37 ,52 ,72 ,99 ,136 ,190 ,262 ,357 ,500 ,686 ,950, 1150, 1150 };
+    const uint16_t st25r3911Rssi2mV[] = { 0 ,20 ,27 ,37 ,52 ,72 ,99 ,136 ,190 ,262 ,357 ,500 ,686 ,950, 0, 0 };
 
     /* ST25R3911 2/3 stage gain reduction [dB]   0    0    0    0    0    3    6    9   12   15   18  na na na na na */
     const uint16_t st25r3911Gain2Percent[] = { 100, 100, 100, 100, 100, 141, 200, 281, 398, 562, 794, 1, 1, 1, 1, 1 };
@@ -722,6 +619,23 @@ ReturnCode st25r3911GetRSSI( uint16_t *amRssi, uint16_t *pmRssi )
     }
     
     return ERR_NONE;
+}
+
+bool st25r3911IrqIsWakeUpCap( void )
+{
+  return ( (st25r3911GetInterrupt(ST25R3911_IRQ_MASK_WCAP) != 0U) ? true : false );
+}
+
+
+bool st25r3911IrqIsWakeUpPhase( void )
+{
+  return ( (st25r3911GetInterrupt(ST25R3911_IRQ_MASK_WPH) != 0U) ? true : false );
+}
+
+
+bool st25r3911IrqIsWakeUpAmplitude( void )
+{
+  return ( (st25r3911GetInterrupt(ST25R3911_IRQ_MASK_WAM) != 0U) ? true : false );
 }
 
 /*

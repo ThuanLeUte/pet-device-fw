@@ -13,6 +13,7 @@
 /* Includes ----------------------------------------------------------------- */
 #include "platform_common.h"
 #include "bsp.h"
+#include "demo.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define EXAMPLE_ESP_WIFI_SSID "A06.11"
@@ -40,7 +41,27 @@ void sys_boot(void)
   // Board Support Package init
   bsp_init();
 
-  m_wifi_init_sta();
+  // Initialize RFAL
+  // rfalAnalogConfigInitialize();
+
+  if (rfalInitialize() != ERR_NONE)
+  {
+    // Initialization failed - indicate on LEDs
+    while (1)
+    {
+      platformDelay(500);
+    }
+  }
+
+  // Infinite loop
+  while (1)
+  {
+    // Run RFAL Worker
+    rfalWorker();
+
+    // Run Demo Application
+    demoCycle();
+  }
 }
 
 void sys_run(void)
@@ -51,11 +72,11 @@ void sys_run(void)
 /* Private function --------------------------------------------------------- */
 /**
  * @brief         Ready state machine
- * 
+ *
  * @param[in]     None
- * 
+ *
  * @attention     None
- * 
+ *
  * @return        None
  */
 static void m_wifi_event_handler(void *arg, esp_event_base_t event_base,
@@ -80,11 +101,11 @@ static void m_wifi_event_handler(void *arg, esp_event_base_t event_base,
 
 /**
  * @brief         Ready state machine
- * 
+ *
  * @param[in]     None
- * 
+ *
  * @attention     None
- * 
+ *
  * @return        None
  */
 static void m_wifi_init_sta(void)
@@ -106,8 +127,7 @@ static void m_wifi_init_sta(void)
       .sta = {
           .ssid = EXAMPLE_ESP_WIFI_SSID,
           .password = EXAMPLE_ESP_WIFI_PASS,
-      }
-  };
+      }};
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
@@ -115,7 +135,7 @@ static void m_wifi_init_sta(void)
   ESP_LOGI(TAG, "Wifi_init_sta finished.");
 
   /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
-     * number of re-tries (WIFI_FAIL_BIT). The bits are set by m_wifi_event_handler() (see above) */
+   * number of re-tries (WIFI_FAIL_BIT). The bits are set by m_wifi_event_handler() (see above) */
   EventBits_t bits = xEventGroupWaitBits(m_wifi_event_group,
                                          WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
                                          pdFALSE,
@@ -123,7 +143,7 @@ static void m_wifi_init_sta(void)
                                          portMAX_DELAY);
 
   /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
-     * happened. */
+   * happened. */
   if (bits & WIFI_CONNECTED_BIT)
   {
     ESP_LOGI(TAG, "Connected to ap SSID:%s password:%s",

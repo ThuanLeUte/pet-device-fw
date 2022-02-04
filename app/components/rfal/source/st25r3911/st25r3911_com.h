@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -475,7 +480,7 @@
 #define ST25R3911_REG_CAP_SENSOR_CONTROL_cs_mcal2             (1U<<5)
 #define ST25R3911_REG_CAP_SENSOR_CONTROL_cs_mcal3             (1U<<6)
 #define ST25R3911_REG_CAP_SENSOR_CONTROL_cs_mcal4             (1U<<7)
-#define ST25R3911_REG_CAP_SENSOR_CONTROL_mask_cs_mcal         (0x1fU<<3)
+#define ST25R3916_REG_CAP_SENSOR_CONTROL_mask_cs_mcal         (0x1fU<<3)
 #define ST25R3911_REG_CAP_SENSOR_CONTROL_shift_cs_mcal        (3U)
 #define ST25R3911_REG_CAP_SENSOR_RESULT_cs_cal_err            (1U<<1)
 #define ST25R3911_REG_CAP_SENSOR_RESULT_cs_cal_end            (1U<<2)
@@ -484,9 +489,9 @@
 #define ST25R3911_REG_CAP_SENSOR_RESULT_cs_cal2               (1U<<5)
 #define ST25R3911_REG_CAP_SENSOR_RESULT_cs_cal3               (1U<<6)
 #define ST25R3911_REG_CAP_SENSOR_RESULT_cs_cal4               (1U<<7)
-#define ST25R3911_REG_AUX_DISPLAY_en_ac                       (1U<<0)
-#define ST25R3911_REG_AUX_DISPLAY_nfc_t                       (1U<<1)
-#define ST25R3911_REG_AUX_DISPLAY_rx_act                      (1U<<2)
+#define ST25R3911_REG_AUX_DISPLAY_mrt_on                      (1U<<0)
+#define ST25R3911_REG_AUX_DISPLAY_nrt_on                      (1U<<1)
+#define ST25R3911_REG_AUX_DISPLAY_gpt_on                      (1U<<2)
 #define ST25R3911_REG_AUX_DISPLAY_rx_on                       (1U<<3)
 #define ST25R3911_REG_AUX_DISPLAY_osc_ok                      (1U<<4)
 #define ST25R3911_REG_AUX_DISPLAY_tx_on                       (1U<<5)
@@ -675,7 +680,7 @@ extern void st25r3911ModifyRegister(uint8_t reg, uint8_t clr_mask, uint8_t set_m
  *  \brief  Changes the given bits on a ST25R3911 Test register
  *
  *  This function is used if only a particular bits should be changed within
- *  an ST25R3911 register.
+ *  an ST25R3916 register.
  *
  *  \param[in]  reg: Address of the Test register to change.
  *  \param[in]  valueMask: bitmask of bits to be changed

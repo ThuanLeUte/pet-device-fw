@@ -6,6 +6,8 @@
         "gpio.h": "c",
         "array": "c",
         "string": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "demo.h": "c",
+        "rfal_nfcb.h": "c"
     }
 }

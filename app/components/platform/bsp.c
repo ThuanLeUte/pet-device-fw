@@ -13,7 +13,7 @@
 /* Includes ----------------------------------------------------------------- */
 #include "bsp.h"
 #include "platform_common.h"
-#include "bsp_io_11.h""
+#include "bsp_io_11.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define MAX_HEX_STR           (4)

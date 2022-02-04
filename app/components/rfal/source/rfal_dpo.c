@@ -2,10 +2,16 @@
 /******************************************************************************
   * @attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        http://www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -38,7 +44,6 @@
 #include "platform.h"
 #include "rfal_rf.h"
 #include "rfal_chip.h"
-#include "rfal_analogConfig.h"
 #include "utils.h"
 
 
@@ -49,19 +54,12 @@
  */
 
 #ifndef RFAL_FEATURE_DPO
-    #define RFAL_FEATURE_DPO   false    /* Dynamic Power Module configuration missing. Disabled by default */
+    #error " RFAL: Module configuration missing. Please enable/disable Dynamic Power module by setting: RFAL_FEATURE_DPO "
 #endif
 
 #if RFAL_FEATURE_DPO
 
 
-/*
- ******************************************************************************
- * DEFINES
- ******************************************************************************
- */
-#define RFAL_DPO_ANALOGCONFIG_SHIFT       13U
-#define RFAL_DPO_ANALOGCONFIG_MASK        0x6000U
     
 /*
  ******************************************************************************
@@ -136,8 +134,8 @@ ReturnCode rfalDpoTableWrite( rfalDpoEntry* powerTbl, uint8_t powerTblEntries )
     
     if(gRfalDpoTableEntry > powerTblEntries)
     {
-        /* Is always greater then zero, otherwise we already returned ERR_PARAM */
-        gRfalDpoTableEntry = (powerTblEntries - 1); 
+      /* is always greater then zero, otherwise we already returned ERR_PARAM */
+      gRfalDpoTableEntry = (powerTblEntries - 1); 
     }
     
     return ERR_NONE;
@@ -160,74 +158,59 @@ ReturnCode rfalDpoTableRead( rfalDpoEntry* tblBuf, uint8_t tblBufEntries, uint8_
 }
 
 /*******************************************************************************/
-ReturnCode rfalDpoAdjust( void )
+ReturnCode rfalDpoAdjust(void)
 {
-    uint8_t     refValue = 0;
-    uint16_t    modeID;
-    rfalBitRate br;
+    uint8_t refValue = 0;
     rfalDpoEntry* dpoTable = (rfalDpoEntry*) gRfalCurrentDpo;    
     
     /* Check if the Power Adjustment is disabled and                  *
-     * if the callback to the measurement method is properly set      */
+     * if the callback to the measurement methode is proper set       */
     if( (gRfalCurrentDpo == NULL) || (!gRfalDpoIsEnabled) || (gRfalDpoMeasureCallback == NULL) )
     {
         return ERR_PARAM;
-    }
-    
-    /* Ensure that the current mode is Passive Poller */
-    if( !rfalIsModePassivePoll( rfalGetMode() ) )
-    {
-        return ERR_WRONG_STATE;
     }
       
     /* Ensure a proper measure reference value */
     if( ERR_NONE != gRfalDpoMeasureCallback( &refValue ) )
     {
-        return ERR_IO;
+        return ERR_PARAM;
     }
 
     
+    /* increase the output power */
     if( refValue >= dpoTable[gRfalDpoTableEntry].inc )
-    {   /* Increase the output power */
+    {
         /* the top of the table represents the highest amplitude value*/
         if( gRfalDpoTableEntry == 0 )
         {
-            /* maximum driver value has been reached */
+            /* check if the maximum driver value has been reached */
+            return ERR_NONE;
         }
-        else
-        {
-            /* go up in the table to decrease the driver resistance */
-            gRfalDpoTableEntry--;
-        }
-    }
-    else if(refValue <= dpoTable[gRfalDpoTableEntry].dec)
-    {   /* decrease the output power */
-        /* The bottom is the highest possible value */
-        if( (gRfalDpoTableEntry + 1) >= gRfalDpoTableEntries)
-        {
-            /* minimum driver value has been reached */
-        }
-        else
-        {
-            /* go down in the table to increase the driver resistance */
-            gRfalDpoTableEntry++;
-        }
+        /* go up in the table to decrease the driver resistance */
+        gRfalDpoTableEntry--;
     }
     else
     {
-        /* Fall through to always write dpo and its associated analog configs */
+        /* decrease the output power */
+        if(refValue <= dpoTable[gRfalDpoTableEntry].dec)
+        {
+            /* The bottom is the highest possible value */
+            if( (gRfalDpoTableEntry + 1) >= gRfalDpoTableEntries)
+            {
+                /* check if the minimum driver value has been reached */
+                return ERR_NONE;
+            }
+            /* go down in the table to increase the driver resistance */
+            gRfalDpoTableEntry++;
+        }
+        else
+        {
+            /* do not write the driver again with the same value */
+        }
     }
     
-    /* Get the new value for RFO resistance form the table and apply the new RFO resistance setting */ 
-    rfalChipSetRFO( dpoTable[gRfalDpoTableEntry].rfoRes );
-    
-    /* Apply the DPO Analog Config according to this treshold */
-    /* Technology field is being extended for DPO: 2msb are used for treshold step (only 4 allowed) */
-    rfalGetBitRate( &br, NULL );                                                                    /* Obtain current Tx bitrate       */
-    modeID  = rfalAnalogConfigGenModeID( rfalGetMode(), br, RFAL_ANALOG_CONFIG_DPO );               /* Generate Analog Config mode ID  */
-    modeID |= ((gRfalDpoTableEntry << RFAL_DPO_ANALOGCONFIG_SHIFT) & RFAL_DPO_ANALOGCONFIG_MASK);   /* Add DPO treshold step|level     */
-    rfalSetAnalogConfig( modeID );                                                                  /* Apply DPO Analog Config         */
-    
+    /* get the new value for RFO resistance form the table and apply the new RFO resistance setting */ 
+    rfalChipSetModulatedRFO( dpoTable[gRfalDpoTableEntry].rfoRes );
     return ERR_NONE;
 }
 
@@ -243,6 +226,7 @@ void rfalDpoSetEnabled( bool enable )
 {
     gRfalDpoIsEnabled = enable;
 }
+
 
 /*******************************************************************************/
 bool rfalDpoIsEnabled( void )

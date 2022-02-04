@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -98,8 +103,8 @@ struct st25r3911StreamConfig {
 #define ST25R3911_CMD_RESPONSE_RF_COLLISION_0  0xCAU    /*!< NFC transmit with Response RF Collision Avoidance with n=0 */
 #define ST25R3911_CMD_NORMAL_NFC_MODE          0xCBU    /*!< NFC switch to normal NFC mode                              */
 #define ST25R3911_CMD_ANALOG_PRESET            0xCCU    /*!< Analog Preset                                              */
-#define ST25R3911_CMD_MASK_RECEIVE_DATA        0xD0U    /*!< Mask receive data                                          */
-#define ST25R3911_CMD_UNMASK_RECEIVE_DATA      0xD1U    /*!< Unmask receive data                                        */
+#define ST25R3911_CMD_MASK_RECEIVE_DATA        0xD0U    /*!< Mask recive data                                           */
+#define ST25R3911_CMD_UNMASK_RECEIVE_DATA      0xD1U    /*!< Unmask recive data                                         */
 #define ST25R3911_CMD_MEASURE_AMPLITUDE        0xD3U    /*!< Measure singal amplitude on RFI inputs                     */
 #define ST25R3911_CMD_SQUELCH                  0xD4U    /*!< Squelch                                                    */
 #define ST25R3911_CMD_CLEAR_SQUELCH            0xD5U    /*!< Clear Squelch                                              */
@@ -177,12 +182,9 @@ struct st25r3911StreamConfig {
  *  This function turn on oscillator and regulator and wait for the oscillator to 
  *  become stable.
  * 
- *  \return ERR_SYSTEM : Failure during Oscillator activation
- *  \return ERR_NONE   : No error, Oscillator is active and stable, Regulator is on
- *
  *****************************************************************************
  */
-extern ReturnCode st25r3911OscOn( void );
+extern void st25r3911OscOn( void );
 
 /*! 
  *****************************************************************************
@@ -210,15 +212,9 @@ extern void st25r3911TxRxOff( void );
  *
  *  This function initialises the ST25R3911 driver.
  *
- *  \return ERR_NONE         : Operation successful
- *  \return ERR_HW_MISMATCH  : Expected HW do not match or communication error
- *  \return ERR_IO           : Error during selftest - check communication interface
- *  \return ERR_TIMEOUT      : Timeout during selftest - check IRQ handling
- *  \return ERR_SYSTEM       : Failure during seltest - check oscillator or timers
- *
  *****************************************************************************
  */
-extern ReturnCode st25r3911Initialize( void );
+extern void st25r3911Initialize( void );
 
 /*! 
  *****************************************************************************
@@ -247,26 +243,25 @@ extern void st25r3911Deinitialize( void );
  *
  *****************************************************************************
  */
-extern ReturnCode st25r3911SetBitrate( uint8_t txRate, uint8_t rxRate );
+extern ReturnCode st25r3911SetBitrate(uint8_t txRate, uint8_t rxRate);
 
 /*! 
  *****************************************************************************
  *  \brief  Adjusts supply regulators according to the current supply voltage
  *
- *  On this function the power level is measured in maximum load conditions and
+ *  This function the power level is measured in maximum load conditions and
  *  the regulated voltage reference is set to 250mV below this level.
  *  Execution of this function lasts arround 5ms. 
- *
- *  The regulated voltages will be set to the result of Adjust Regulators
  *  
  *  \param [out] result_mV : Result of calibration in milliVolts.
  *
+ *  \return ERR_REQUEST : Adjustment not possible since reg_s bit is set.
  *  \return ERR_IO : Error during communication with ST25R3911.
  *  \return ERR_NONE : No error.
  *
  *****************************************************************************
  */
-extern ReturnCode st25r3911AdjustRegulators( uint16_t* result_mV );
+extern ReturnCode st25r3911AdjustRegulators(uint16_t* result_mV);
 
 /*! 
  *****************************************************************************
@@ -279,7 +274,7 @@ extern ReturnCode st25r3911AdjustRegulators( uint16_t* result_mV );
  *
  *****************************************************************************
  */
-extern void st25r3911MeasureAmplitude( uint8_t* result );
+extern void st25r3911MeasureAmplitude(uint8_t* result);
 
 /*! 
  *****************************************************************************
@@ -292,7 +287,7 @@ extern void st25r3911MeasureAmplitude( uint8_t* result );
  *
  *****************************************************************************
  */
-extern void st25r3911MeasureCapacitance( uint8_t* result );
+extern void st25r3911MeasureCapacitance(uint8_t* result);
 
 /*! 
  *****************************************************************************
@@ -328,7 +323,7 @@ extern uint8_t st25r3911MeasurePowerSupply( uint8_t mpsv );
  *
  *****************************************************************************
  */
-extern uint16_t st25r3911MeasureVoltage( uint8_t mpsv );
+extern uint16_t st25r3911MeasureVoltage(uint8_t mpsv);
 
 /*! 
  *****************************************************************************
@@ -341,7 +336,7 @@ extern uint16_t st25r3911MeasureVoltage( uint8_t mpsv );
  *
  *****************************************************************************
  */
-extern void st25r3911CalibrateAntenna( uint8_t* result );
+extern void st25r3911CalibrateAntenna(uint8_t* result);
 
 /*! 
  *****************************************************************************
@@ -354,7 +349,7 @@ extern void st25r3911CalibrateAntenna( uint8_t* result );
  *
  *****************************************************************************
  */
-extern void st25r3911MeasurePhase( uint8_t* result );
+extern void st25r3911MeasurePhase(uint8_t* result);
 
 /*! 
  *****************************************************************************
@@ -367,7 +362,7 @@ extern void st25r3911MeasurePhase( uint8_t* result );
  *
  *****************************************************************************
  */
-extern void st25r3911CalibrateModulationDepth( uint8_t* result );
+extern void st25r3911CalibrateModulationDepth(uint8_t* result);
 
 
 /*! 
@@ -393,7 +388,7 @@ extern void st25r3911CalibrateModulationDepth( uint8_t* result );
  *
  *****************************************************************************
  */
-extern ReturnCode st25r3911CalibrateCapacitiveSensor( uint8_t* result );
+extern ReturnCode st25r3911CalibrateCapacitiveSensor(uint8_t* result);
 
 /*! 
  *****************************************************************************
@@ -406,7 +401,7 @@ extern ReturnCode st25r3911CalibrateCapacitiveSensor( uint8_t* result );
  *
  *  \return ERR_PARAM : if time is too large
  */
-extern ReturnCode st25r3911SetNoResponseTime_64fcs( uint32_t nrt_64fcs );
+extern ReturnCode st25r3911SetNoResponseTime_64fcs(uint32_t nrt_64fcs);
 
 /*! 
  *****************************************************************************
@@ -421,7 +416,7 @@ extern ReturnCode st25r3911SetNoResponseTime_64fcs( uint32_t nrt_64fcs );
  *
  *  \return ERR_PARAM : if time is too large
  */
-extern ReturnCode st25r3911SetStartNoResponseTime_64fcs( uint32_t nrt_64fcs );
+extern ReturnCode st25r3911SetStartNoResponseTime_64fcs(uint32_t nrt_64fcs);
 
 /*! 
  *****************************************************************************
@@ -432,10 +427,10 @@ extern ReturnCode st25r3911SetStartNoResponseTime_64fcs( uint32_t nrt_64fcs );
  *  
  *  \param[in] FieldONCmd  : Field ON command to be executed ST25R3911_CMD_INITIAL_RF_COLLISION
  *                           or ST25R3911_CMD_RESPONSE_RF_COLLISION_0/N    
- *  \param[in] pdThreshold : Peer Detection Threshold  (ST25R3911_REG_FIELD_THRESHOLD_trg_xx)
- *                           0xff : don't set Threshold (ST25R3911_THRESHOLD_DO_NOT_SET)
- *  \param[in] caThreshold : Collision Avoidance Threshold (ST25R3911_REG_FIELD_THRESHOLD_rfe_xx)
- *                           0xff : don't set Threshold (ST25R3911_THRESHOLD_DO_NOT_SET)
+ *  \param[in] pdThreshold : Peer Detection Threshold  (ST25R3916_REG_FIELD_THRESHOLD_trg_xx)
+ *                           0xff : don't set Threshold (ST25R3916_THRESHOLD_DO_NOT_SET)
+ *  \param[in] caThreshold : Collision Avoidance Threshold (ST25R3916_REG_FIELD_THRESHOLD_rfe_xx)
+ *                           0xff : don't set Threshold (ST25R3916_THRESHOLD_DO_NOT_SET)
  *  \param[in] nTRFW       : Number of TRFW
  * 
  *  \return ERR_NONE : no collision detected
@@ -468,7 +463,7 @@ extern uint8_t st25r3911GetNumFIFOLastBits( void );
  *
  *  \return the value of the NRT
  */
-extern uint32_t st25r3911GetNoResponseTime_64fcs( void );
+extern uint32_t st25r3911GetNoResponseTime_64fcs(void);
 
 /*! 
  *****************************************************************************
@@ -479,7 +474,7 @@ extern uint32_t st25r3911GetNoResponseTime_64fcs( void );
  *  \param gpt_8fcs : general purpose timer timeout in 8/fc = 590ns
  *
  */
-extern void st25r3911SetGPTime_8fcs( uint16_t gpt_8fcs );
+extern void st25r3911SetGPTime_8fcs(uint16_t gpt_8fcs);
 /*! 
  *****************************************************************************
  *  \brief  Starts GPT with given timeout
@@ -489,7 +484,7 @@ extern void st25r3911SetGPTime_8fcs( uint16_t gpt_8fcs );
  *  \param gpt_8fcs : general purpose timer timeout in 8/fc = 590ns
  *  \param trigger_source : no trigger, start of Rx, end of Rx, end of Tx in NFC mode 
  */
-extern void st25r3911StartGPTimer_8fcs( uint16_t gpt_8fcs, uint8_t trigger_source );
+extern void st25r3911StartGPTimer_8fcs(uint16_t gpt_8fcs, uint8_t trigger_source);
 
 /*! 
  *****************************************************************************
@@ -558,26 +553,18 @@ bool st25r3911IsCmdValid( uint8_t cmd );
  *  This function initializes the stream with the given parameters
  *
  *  \param[in] config : all settings for bitrates, type, etc.
- *
+
  *  \return ERR_NONE : No error, stream mode driver initialized.
  *
  *****************************************************************************
  */
-extern ReturnCode st25r3911StreamConfigure( const struct st25r3911StreamConfig *config );
+extern ReturnCode st25r3911StreamConfigure(const struct st25r3911StreamConfig *config);
 
 /*! 
  *****************************************************************************
- *  \brief  Register Dump
- *
- * Retrieves all internal registers from ST25R3911
- *
- *  \param[out] resRegDump : pointer to the struct/buffer where the reg dump
- *                               will be written
- *  \param[in,out] sizeRegDump : number of registers requested and the ones actually 
- *                               written
- *  \return ERR_NONE : No error, stream mode driver initialized.
+ *  \brief  Retrieves all  internal registers from st25r3911
  */
-extern ReturnCode st25r3911GetRegsDump( uint8_t* resRegDump, uint8_t* sizeRegDump );
+extern ReturnCode st25r3911GetRegsDump(uint8_t* resRegDump, uint8_t* sizeRegDump);
 
 
 /*! 
@@ -598,6 +585,26 @@ extern ReturnCode st25r3911GetRegsDump( uint8_t* resRegDump, uint8_t* sizeRegDum
  */
 ReturnCode st25r3911GetRSSI( uint16_t *amRssi, uint16_t *pmRssi );
 
+
+/*! 
+ *****************************************************************************
+ *  \brief  Cheks if a Wakeup IRQ due to Capacitive measument has happen
+ */
+extern bool st25r3911IrqIsWakeUpCap( void );
+
+
+/*! 
+ *****************************************************************************
+ *  \brief  Cheks if a Wakeup IRQ due to Phase measument has happen
+ */
+extern bool st25r3911IrqIsWakeUpPhase( void );
+
+
+/*! 
+ *****************************************************************************
+ *  \brief  Cheks if a Wakeup IRQ due to Amplitude measument has happen
+ */
+extern bool st25r3911IrqIsWakeUpAmplitude( void );
 
 #endif /* ST25R3911_H */
 
