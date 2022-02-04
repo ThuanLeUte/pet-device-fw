@@ -13,6 +13,7 @@
 /* Includes ----------------------------------------------------------------- */
 #include "bsp.h"
 #include "platform_common.h"
+#include "bsp_io_11.h""
 
 /* Private defines ---------------------------------------------------------- */
 #define MAX_HEX_STR           (4)
@@ -159,9 +160,9 @@ static inline void bsp_spi_init(void)
 
   spi_bus_config_t bus_cfg =
   {
-    .miso_io_num   = SPI_MISO_PIN,
-    .mosi_io_num   = SPI_MOSI_PIN,
-    .sclk_io_num   = SPI_SCLK_PIN,
+    .miso_io_num   = IO_NFC_SPI_MISO,
+    .mosi_io_num   = IO_NFC_SPI_MOSI,
+    .sclk_io_num   = IO_NFC_SPI_CLK,
     .quadwp_io_num = -1,
     .quadhd_io_num = -1
   };

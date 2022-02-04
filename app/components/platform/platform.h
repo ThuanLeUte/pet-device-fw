@@ -18,18 +18,19 @@
 #include "bsp.h"
 
 #include "st_errno.h"
+#include "bsp_io_11.h"
 
 /* Public defines ----------------------------------------------------- */
-#define ST25R3911                              1
+#define ST25R3911                              (1)
 
 #define ST25R_INT_PIN                          (-1)
-#define ST25R391X_SS_PIN                       (SPI_SS_PIN)           /*!< GPIO pin used for ST25R391X SPI SS                               */
+#define ST25R391X_SS_PIN                       (IO_NFC_SPI_SS)           /*!< GPIO pin used for ST25R391X SPI SS                               */
 #define ST25R391X_SS_PORT                      (-1)                   /*!< GPIO port used for ST25R391X SPI SS port                         */
 
-#define ST25R391X_IRQ_OUT_PIN                  (IRQ_OUT_PIN)          /*!< GPIO pin used for ST25R391X nIRQ_OUT                             */
+#define ST25R391X_IRQ_OUT_PIN                  (IO_NFC_IRQ_OUT_PIN)          /*!< GPIO pin used for ST25R391X nIRQ_OUT                             */
 #define ST25R391X_IRQ_OUT_PORT                 (-1)                   /*!< GPIO port used for ST25R391X nIRQ_OUT                            */
 
-#define ST25R391X_IRQ_IN_PIN                   (IRQ_IN_PIN)           /*!< GPIO pin used for ST25R391X nIRQ_IN                              */
+#define ST25R391X_IRQ_IN_PIN                   (IO_NFC_IRQ_IN_PIN)           /*!< GPIO pin used for ST25R391X nIRQ_IN                              */
 #define ST25R391X_IRQ_IN_PORT                  (-1)                   /*!< GPIO port used for ST25R391X nIRQ_IN                             */
 
 #define PLATFORM_LED_PIN                       (-1)                   /*!< GPIO pin used for LED                                          */
