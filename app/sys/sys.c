@@ -42,16 +42,20 @@ void sys_boot(void)
   bsp_init();
 
   // Initialize RFAL
-  // rfalAnalogConfigInitialize();
+  rfalAnalogConfigInitialize();
 
   if (rfalInitialize() != ERR_NONE)
   {
+    ESP_LOGI(TAG, "Init faild: %d", rfalInitialize());
+
     // Initialization failed - indicate on LEDs
     while (1)
     {
       platformDelay(500);
     }
   }
+
+  ESP_LOGI(TAG, "Init ok");
 
   // Infinite loop
   while (1)

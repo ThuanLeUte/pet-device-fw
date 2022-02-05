@@ -29,12 +29,14 @@ static spi_device_handle_t  m_spi_hdl;
 static inline void m_bsp_nvs_init(void);
 static inline void m_bsp_spiffs_init(void);
 static inline void bsp_spi_init(void);
+static inline void bsp_gpio_init(void);
 
 /* Function definitions ----------------------------------------------------- */
 void bsp_init(void)
 {
   m_bsp_nvs_init();
   m_bsp_spiffs_init();
+  bsp_gpio_init();
   bsp_spi_init();
 }
 
@@ -182,6 +184,12 @@ static inline void bsp_spi_init(void)
   // Attach the LCD to the SPI bus
   ret = spi_bus_add_device(HSPI_HOST, &dev_cfg, &m_spi_hdl);
   assert(ret == ESP_OK);
+}
+
+static inline void bsp_gpio_init(void)
+{
+  gpio_pad_select_gpio(IO_NFC_SPI_SS);
+  gpio_set_direction(IO_NFC_SPI_SS, GPIO_MODE_OUTPUT);
 }
 
 /* End of file -------------------------------------------------------- */

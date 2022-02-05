@@ -21,23 +21,22 @@
 #include "bsp_io_11.h"
 
 /* Public defines ----------------------------------------------------- */
-#define ST25R3911                              (1)
+#define ST25R3911                               (1)
 
-#define ST25R_INT_PIN                          (-1)
-#define ST25R391X_SS_PIN                       (IO_NFC_SPI_SS)           /*!< GPIO pin used for ST25R391X SPI SS                               */
-#define ST25R391X_SS_PORT                      (-1)                   /*!< GPIO port used for ST25R391X SPI SS port                         */
+#define ST25R391X_SS_PIN                        (IO_NFC_SPI_SS)        /*!< GPIO pin used for ST25R391X SPI SS                               */
+#define ST25R391X_SS_PORT                       (-1)                   /*!< GPIO port used for ST25R391X SPI SS port                         */
 
-#define ST25R391X_IRQ_OUT_PIN                  (IO_NFC_IRQ_OUT_PIN)          /*!< GPIO pin used for ST25R391X nIRQ_OUT                             */
-#define ST25R391X_IRQ_OUT_PORT                 (-1)                   /*!< GPIO port used for ST25R391X nIRQ_OUT                            */
+#define ST25R391X_IRQ_OUT_PIN                   (IO_NFC_IRQ_OUT_PIN)   /*!< GPIO pin used for ST25R391X nIRQ_OUT                             */
+#define ST25R391X_IRQ_OUT_PORT                  (-1)                   /*!< GPIO port used for ST25R391X nIRQ_OUT                            */
 
-#define ST25R391X_INT_PIN                   (IO_NFC_IRQ_IN_PIN)           /*!< GPIO pin used for ST25R391X nIRQ_IN                              */
-#define ST25R391X_INT_PORT                  (-1)                   /*!< GPIO port used for ST25R391X nIRQ_IN                             */
+#define ST25R391X_INT_PIN                       (IO_NFC_IRQ_IN_PIN)    /*!< GPIO pin used for ST25R391X nIRQ_IN                              */
+#define ST25R391X_INT_PORT                      (-1)                   /*!< GPIO port used for ST25R391X nIRQ_IN                             */
 
-#define PLATFORM_LED_PIN                       (-1)                   /*!< GPIO pin used for LED                                          */
-#define PLATFORM_LED_PORT                      (-1)                   /*!< GPIO port used for LED                                         */
+#define PLATFORM_LED_PIN                        (-1)                   /*!< GPIO pin used for LED                                          */
+#define PLATFORM_LED_PORT                       (-1)                   /*!< GPIO port used for LED                                         */
 
-#define ST25R391X_TAGDETECT_DEF_CALIBRATION      0x7C                 /*!< Tag Detection Calibration default value                        */
-#define ST25R391X_TAGDETECT_CALIBRATE            true                 /*!< False: use default value, True: call calibration procedure     */
+#define ST25R391X_TAGDETECT_DEF_CALIBRATION      0x7C                  /*!< Tag Detection Calibration default value                        */
+#define ST25R391X_TAGDETECT_CALIBRATE            true                  /*!< False: use default value, True: call calibration procedure     */
 
 /*
 ******************************************************************************
@@ -73,9 +72,9 @@
 #define RFAL_FEATURE_NFC_DEP_PDU_MAX_LEN       (512U)     /*!< NFC-DEP PDU max length.                                                   */
 
 
-#define platformLedOn( port, pin )             platformGpioSet(port, pin)         /*!< Turns the given LED On                            */
-#define platformLedOff( port, pin )            platformGpioClear(port, pin)       /*!< Turns the given LED Off                           */
-#define platformLedToogle( port, pin )         platformGpioToogle(port, pin)      /*!< Toogle the given LED                              */
+#define platformLedOn( port, pin )         
+#define platformLedOff( port, pin )        
+#define platformLedToogle( port, pin )     
 
 #define platformGpioSet(port, pin)             gpio_set_level(pin, 1)             /*!< Turns the given GPIO High                         */
 #define platformGpioClear(port, pin)           gpio_set_level(pin, 0)             /*!< Turns the given GPIO Low                          */

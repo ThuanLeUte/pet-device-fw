@@ -8,6 +8,7 @@
         "string": "c",
         "string_view": "c",
         "demo.h": "c",
-        "rfal_nfcb.h": "c"
+        "rfal_nfcb.h": "c",
+        "rfal_rf.h": "c"
     }
 }

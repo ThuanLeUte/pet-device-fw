@@ -24,12 +24,12 @@ extern "C" {
 /* Public defines ----------------------------------------------------- */
                                     // Schematic
 // PIN NAME PORT 0 ``````````````````````````````
-#define IO_NFC_SPI_SS               (GPIO_NUM_8)    // NFC
+#define IO_NFC_SPI_SS               (GPIO_NUM_14)   // NFC
 #define IO_NFC_SPI_CLK              (GPIO_NUM_25)   // NFC
 #define IO_NFC_SPI_MISO             (GPIO_NUM_32)   // NFC
 #define IO_NFC_SPI_MOSI             (GPIO_NUM_33)   // NFC
-#define IO_NFC_IRQ_OUT_PIN          (-1)            // NFC
-#define IO_NFC_IRQ_IN_PIN           (-1)            // NFC
+
+#define IO_NFC_IRQ_IN_PIN           (GPIO_NUM_35)   // NFC
 
 /* Public enumerate/structure ----------------------------------------- */
 /* Public macros ------------------------------------------------------ */
