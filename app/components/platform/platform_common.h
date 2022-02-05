@@ -44,6 +44,9 @@ extern "C" {
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include "esp_spiffs.h"
+#include "driver/spi_master.h"
+#include "hal/gpio_types.h"
+#include "driver/gpio.h"
 
 /* Public defines ----------------------------------------------------- */
 /* Public enumerate/structure ----------------------------------------------- */

@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -60,32 +65,12 @@
 #include "st_errno.h"
 #include "rfal_rf.h"
 
-
-/*
- ******************************************************************************
- * ENABLE SWITCH
- ******************************************************************************
- */
- 
-#ifndef RFAL_FEATURE_NFC_DEP
-    #define RFAL_FEATURE_NFC_DEP   false                 /*!< NFC-DEP module configuration missing. Disabled by default */
-#endif
-    
-/* If module is disabled remove the need for the user to set lengths */
-#if !RFAL_FEATURE_NFC_DEP
-    #undef RFAL_FEATURE_NFC_DEP_BLOCK_MAX_LEN
-    #undef RFAL_FEATURE_NFC_DEP_PDU_MAX_LEN
-
-    #define RFAL_FEATURE_NFC_DEP_BLOCK_MAX_LEN   1U      /*!< NFC-DEP Block/Payload length, set to "none" */
-    #define RFAL_FEATURE_NFC_DEP_PDU_MAX_LEN     1U      /*!< NFC-DEP PDU length, set to "none"           */
-#endif /* !RFAL_FEATURE_NFC_DEP  */
-
 /*
  ******************************************************************************
  * DEFINES
  ******************************************************************************
  */
-#define RFAL_NFCDEP_FRAME_SIZE_MAX_LEN  254U             /*!< Maximum Frame Size   Digital 2.0 Table 90                      */
+#define RFAL_NFCDEP_FRAME_SIZE_MAX_LEN  254U             /*!< NFCIP Maximum Frame Size   Digital 1.0 Table 91                */
 #define RFAL_NFCDEP_DEPREQ_HEADER_LEN   5U               /*!< DEP_REQ header length: CMD_TYPE + CMD_CMD + PBF + DID + NAD    */
 
 /*! Length NFCIP DEP REQ or RES header (incl LEN)                                                                           */
@@ -128,7 +113,7 @@
 #define RFAL_NFCDEP_BRS_Dx_MASK          0x07U           /*!< Value signalling that BR is to be maintained (no PSL)          */
 #define RFAL_NFCDEP_BRS_DSI_POS          3U              /*!< Value signalling that BR is to be maintained (no PSL)          */
 
-#define RFAL_NFCDEP_WT_DELTA             (16U - RFAL_NFCDEP_WT_DELTA_ADJUST) /*!< NFC-DEP dWRT (adjusted)  Digital 2.0 B.10  */
+#define RFAL_NFCDEP_WT_DELTA             (16U - RFAL_NFCDEP_WT_DELTA_ADJUST) /*!< NFC-DEP dWRT (adjusted)  Digital 1.0 A.10  */
 #define RFAL_NFCDEP_WT_DELTA_ADJUST      4U              /*!< dWRT value adjustment                                          */
 
 
@@ -153,8 +138,7 @@
 
 #define RFAL_NFCDEP_WT_TRG_MAX_D10       8U                                     /*!< WT target max Digital 1.0 14.6.3.8 A.10 */
 #define RFAL_NFCDEP_WT_TRG_MAX_D11       14U                                    /*!< WT target max Digital 1.1 16.6.3.9 A.9  */
-#define RFAL_NFCDEP_WT_TRG_MAX_L13       10U                                    /*!< WT target max [LLCP] 1.3 6.2.1          */
-#define RFAL_NFCDEP_WT_TRG_MAX           RFAL_NFCDEP_WT_TRG_MAX_D11             /*!< WT target max Digital x.x | LLCP x.x    */
+#define RFAL_NFCDEP_WT_TRG_MAX           RFAL_NFCDEP_WT_TRG_MAX_D10             /*!< WT target max Digital 1.x               */
 #define RFAL_NFCDEP_RWT_TRG_MAX          rfalNfcDepWT2RWT( RFAL_NFCDEP_WT_TRG_MAX ) /*!< RWT Initiator maximum value         */
 
 /*! Maximum Frame Waiting Time = ((256 * 16/fc)*2^FWImax) = ((256*16/fc)*2^14) = (1048576 / 64)/fc = (100000h*64)/fc         */
@@ -172,7 +156,7 @@
  ******************************************************************************
  */
 
-#define rfalNfcDepWT2RWT( wt )         ( (uint32_t)1U << (((uint32_t)(wt) & RFAL_NFCDEP_WT_MASK) + 12U) )                 /*!< Converts WT value to RWT (1/fc)               */
+#define rfalNfcDepWT2RWT( wt )         ( (uint32_t)1U << (((uint32_t)(wt) & RFAL_NFCDEP_WT_MASK) + 6U) )         /*!< Converts WT value to RWT                      */
 
 /*! Returns the BRS value from the given bit rate */
 #define rfalNfcDepDx2BRS( br )         ( (((uint8_t)(br) & RFAL_NFCDEP_BRS_Dx_MASK) << RFAL_NFCDEP_BRS_DSI_POS) | ((uint8_t)(br) & RFAL_NFCDEP_BRS_Dx_MASK) )
@@ -303,16 +287,8 @@ typedef struct {
 typedef struct
 {
     uint8_t  prologue[RFAL_NFCDEP_DEPREQ_HEADER_LEN];  /*!< Prologue space for NFC-DEP header*/
-    uint8_t  inf[RFAL_FEATURE_NFC_DEP_BLOCK_MAX_LEN];  /*!< INF | Data area of the buffer    */
+    uint8_t  inf[RFAL_NFCDEP_FRAME_SIZE_MAX_LEN];      /*!< INF | Data area of the buffer    */
 } rfalNfcDepBufFormat;
-
-
-/*! Structure of APDU Buffer format from caller */
-typedef struct
-{
-    uint8_t  prologue[RFAL_NFCDEP_DEPREQ_HEADER_LEN];  /*!< Prologue/SoD buffer                     */
-    uint8_t  pdu[RFAL_FEATURE_NFC_DEP_PDU_MAX_LEN];    /*!< Complete PDU/Payload buffer             */
-} rfalNfcDepPduBufFormat;
 
 
 /*! Activation info as Initiator and Target                                       */
@@ -331,9 +307,9 @@ typedef union { /*  PRQA S 0750 # MISRA 19.2 - Both members of the union will no
 /*! NFC-DEP device Info */
 typedef struct {
     uint8_t           GBLen;      /*!< General Bytes length                       */
-    uint8_t           WT;         /*!< WT to be used (ignored in Listen Mode)     */
-    uint32_t          FWT;        /*!< FWT to be used (1/fc)(ignored Listen Mode) */
-    uint32_t          dFWT;       /*!< Delta FWT to be used (1/fc)                */
+    uint8_t           WT;         /*!< FWT to be used (ignored in Listen Mode)    */
+    uint32_t          FWT;        /*!< FWT to be used (ignored in Listen Mode)    */
+    uint32_t          dFWT;       /*!< Delta FWT to be used                       */
     uint8_t           LR;         /*!< Length Reduction coding the max payload    */
     uint16_t          FS;         /*!< Frame Size                                 */
     rfalBitRate       DSI;        /*!< Bit Rate coding from Initiator  to Target  */
@@ -370,7 +346,7 @@ typedef struct{
     uint8_t            DID;            /*!< Initiator's Device ID DID             */
     uint8_t            NAD;            /*!< Initiator's Node ID NAD               */
     uint8_t            BS;             /*!< Initiator's Bit Rates supported in Tx */
-    uint8_t            BR;             /*!< Initiator's Bit Rates supported in Rx */
+    uint8_t            NFC_BR;             /*!< Initiator's Bit Rates supported in Rx */
     uint8_t            LR;             /*!< Initiator's Length reduction          */
     uint8_t*           GB;             /*!< Initiator's General Bytes (Gi)        */
     uint8_t            GBLen;          /*!< Initiator's General Bytes length      */
@@ -428,21 +404,6 @@ typedef struct
 } rfalNfcDepTxRxParam;
 
 
-/*! Structure of parameters used on NFC DEP PDU Transceive */
-typedef struct
-{
-    rfalNfcDepPduBufFormat   *txBuf;    /*!< Transmit Buffer struct reference         */
-    uint16_t                 txBufLen;  /*!< Transmit Buffer INF field length in Bytes*/
-    rfalNfcDepPduBufFormat   *rxBuf;    /*!< Receive Buffer struct reference in Bytes */
-    uint16_t                 *rxLen;    /*!< Received INF data length in Bytes        */
-    rfalNfcDepBufFormat      *tmpBuf;   /*!< Temp buffer for single PDUs (internal)   */
-    uint32_t                 FWT;       /*!< FWT to be used (ignored in Listen Mode)  */
-    uint32_t                 dFWT;      /*!< Delta FWT to be used                     */
-    uint16_t                 FSx;       /*!< Other device Frame Size (FSD or FSC)     */
-    uint8_t                  DID;       /*!< Device ID (RFAL_ISODEP_NO_DID if no DID) */
-} rfalNfcDepPduTxRxParam;
-
-
 /*
  * *****************************************************************************
  * GLOBAL VARIABLE DECLARATIONS
@@ -490,7 +451,7 @@ void rfalNfcDepSetDeactivatingCallback( rfalNfcDepDeactCallback pFunc );
  * 
  * \param[in]  wt : the WT value to calculate RWT
  * 
- * \return RWT value in 1/fc
+ * \return RWT value 
  ******************************************************************************
  */
 uint32_t rfalNfcDepCalculateRWT( uint8_t wt );
@@ -695,7 +656,7 @@ ReturnCode rfalNfcDepListenGetActivationStatus( void );
  * \return ERR_NONE        : The Transceive request has been started
  *****************************************************************************
  */
-ReturnCode rfalNfcDepStartTransceive( const rfalNfcDepTxRxParam *param );
+ReturnCode rfalNfcDepStartTransceive( rfalNfcDepTxRxParam *param );
 
 
 /*!
@@ -727,50 +688,6 @@ ReturnCode rfalNfcDepStartTransceive( const rfalNfcDepTxRxParam *param );
  */
 ReturnCode rfalNfcDepGetTransceiveStatus( void );
 
-
-/*!
- *****************************************************************************
- * \brief Start PDU Transceive 
- * 
- * This method triggers a NFC-DEP Transceive containing a complete PDU
- * It transmits the given message and handles all protocol retransmitions,
- * error handling and control messages
- * 
- * The txBuf  contains a complete PDU to be transmitted 
- * The Prologue field will be manipulated by the Transceive
- *  
- * \warning the txBuf will be modified during the transmission
- * \warning the maximum RF frame which can be received is limited by param.tmpBuf
- * 
- * \param[in] param: reference parameters to be used for the Transceive
- *                    
- * \return ERR_PARAM       : Bad request
- * \return ERR_WRONG_STATE : The module is not in a proper state
- * \return ERR_NONE        : The Transceive request has been started
- *****************************************************************************
- */
-ReturnCode rfalNfcDepStartPduTransceive( rfalNfcDepPduTxRxParam param );
-
-
-/*!
- *****************************************************************************
- * \brief Return the PSU Transceive status
- *
- * Returns the status of the NFC-DEP PDU Transceive
- * 
- * 
- * \return ERR_NONE      : Transceive has been completed successfully
- * \return ERR_BUSY      : Transceive is ongoing
- * \return ERR_PROTO     : Protocol error occurred
- * \return ERR_TIMEOUT   : Timeout error occurred
- * \return ERR_SLEEP_REQ : Deselect has been received and responded
- * \return ERR_NOMEM     : The received I-PDU does not fit into the
- *                            receive buffer
- * \return ERR_LINK_LOSS : Communication is lost because Reader/Writer 
- *                            has turned off its field
- *****************************************************************************
- */
-ReturnCode rfalNfcDepGetPduTransceiveStatus( void );
 
 #endif /* RFAL_NFCDEP_H_ */
 

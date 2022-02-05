@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 /*
  *      PROJECT:   ST25R391x firmware
@@ -27,10 +32,10 @@
  *
  *  \brief Provides several NFC-A convenience methods and definitions
  *  
- *  It provides a Poller (ISO14443A PCD) interface as well as 
+ *  It provides a Poller (ISO14443A PCD) interface and as well as 
  *  some NFC-A Listener (ISO14443A PICC) helpers.
  *
- *  The definitions and helper methods provided by this module are only
+ *  The definitions and helpers methods provided by this module are only
  *  up to ISO14443-3 layer
  *  
  *  
@@ -300,7 +305,7 @@ ReturnCode rfalNfcaPollerTechnologyDetection( rfalComplianceMode compMode, rfalN
  * \brief  NFC-A Poller Collision Resolution
  *  
  * Collision resolution for one NFC-A Listener device/card (PICC) as 
- * defined in Activity 2.1  9.3.4
+ * defined in Activity 1.1  9.3.4
  * 
  * This method executes anti collision loop and select the device with higher NFCID1
  * 
@@ -329,7 +334,7 @@ ReturnCode rfalNfcaPollerSingleCollisionResolution( uint8_t devLimit, bool *coll
  *****************************************************************************
  * \brief  NFC-A Poller Full Collision Resolution
  *  
- * Performs a full Collision resolution as defined in Activity 2.1  9.3.4
+ * Performs a full Collision resolution as defined in Activity 1.0 or 1.1  9.3.4
  *
  * \param[in]  compMode    : compliance mode to be performed
  * \param[in]  devLimit    : device limit value, and size nfcaDevList
@@ -338,8 +343,13 @@ ReturnCode rfalNfcaPollerSingleCollisionResolution( uint8_t devLimit, bool *coll
  *
  * When compMode is set to ISO compliance it assumes that the device is
  * not sleeping and therefore no ALL_REQ (WUPA) is sent at the beginning.
- * When compMode is set to NFC compliance an additional ALL_REQ (WUPA) is sent 
- * at the beginning.
+ * 
+ * When compMode is set to NFC compliance an additional ALL_REQ (WUPA) is sent at 
+ * the beginning and a proprietary behaviour also takes place. Once a device has been
+ * resolved an additional SLP_REQ (HLTA) is sent regardless if there was a collision
+ * (except if the number of devices found already equals the limit).
+ * This proprietary behaviour ensures proper activation of certain devices that suffer
+ * from influence of Type B commands as foreseen in ISO14443-3 5.2.3
  *  
  *  
  * When devLimit = 0 it is configured to perform collision detection only. Once a collision 
@@ -354,84 +364,6 @@ ReturnCode rfalNfcaPollerSingleCollisionResolution( uint8_t devLimit, bool *coll
  *****************************************************************************
  */
 ReturnCode rfalNfcaPollerFullCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcaListenDevice *nfcaDevList, uint8_t *devCnt );
-
-
-/*! 
- *****************************************************************************
- * \brief  NFC-A Poller Full Collision Resolution with Sleep
- *  
- * Performs a full Collision resolution similar to rfalNfcaPollerFullCollisionResolution
- * but an additional SLP_REQ (HLTA) -> SENS_RES (REQA) is sent regardless if there 
- * was a collision.
- * This proprietary behaviour ensures proper activation of certain devices that suffer
- * from influence of Type B commands as foreseen in ISO14443-3 5.2.3 or were somehow
- * not detected by the first round of collision resolution
- *
- * \param[in]  devLimit    : device limit value, and size nfcaDevList
- * \param[out] nfcaDevList : NFC-A listener device info
- * \param[out] devCnt      : Devices found counter
- *  
- *
- * \return ERR_WRONG_STATE  : RFAL not initialized or mode not set
- * \return ERR_PARAM        : Invalid parameters
- * \return ERR_IO           : Generic internal error
- * \return ERR_NONE         : No error
- *****************************************************************************
- */
-ReturnCode rfalNfcaPollerSleepFullCollisionResolution( uint8_t devLimit, rfalNfcaListenDevice *nfcaDevList, uint8_t *devCnt );
-
-
-/*! 
- *****************************************************************************
- * \brief  NFC-A Poller Start Full Collision Resolution
- *  
- * This method starts the full Collision resolution as defined 
-  * in Activity 1.0 or 1.1  9.3.4
- *
- * \param[in]  compMode    : compliance mode to be performed
- * \param[in]  devLimit    : device limit value, and size nfcaDevList
- * \param[out] nfcaDevList : NFC-A listener device info
- * \param[out] devCnt      : Devices found counter
- *
- * When compMode is set to ISO compliance it assumes that the device is
- * not sleeping and therefore no ALL_REQ (WUPA) is sent at the beginning.
- * When compMode is set to NFC compliance an additional ALL_REQ (WUPA) is sent at 
- * the beginning.
- *  
- *  
- * When devLimit = 0 it is configured to perform collision detection only. Once a collision 
- * is detected the collision resolution is aborted immidiatly. If only one device is found
- * with no collisions, it will properly resolved.
- *
- *
- * \return ERR_WRONG_STATE  : RFAL not initialized or mode not set
- * \return ERR_PARAM        : Invalid parameters
- * \return ERR_IO           : Generic internal error
- * \return ERR_NONE         : No error
- *****************************************************************************
- */
-ReturnCode rfalNfcaPollerStartFullCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcaListenDevice *nfcaDevList, uint8_t *devCnt );
-
-
-/*!
- *****************************************************************************
- *  \brief  NFC-A Get Full Collision Resolution Status
- *
- *  Returns the Collision Resolution status
- *
- *  \return ERR_BUSY         : Operation is ongoing
- *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
- *  \return ERR_PARAM        : Invalid parameters
- *  \return ERR_IO           : Generic internal error
- *  \return ERR_TIMEOUT      : Timeout error
- *  \return ERR_PAR          : Parity error detected
- *  \return ERR_CRC          : CRC error detected
- *  \return ERR_FRAMING      : Framing error detected
- *  \return ERR_PROTO        : Protocol error detected
- *  \return ERR_NONE         : No error, activation successful
- *****************************************************************************
- */
-ReturnCode rfalNfcaPollerGetFullCollisionResolutionStatus( void );
 
 
 /*!

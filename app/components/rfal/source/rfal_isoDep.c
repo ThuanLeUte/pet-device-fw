@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -49,6 +54,10 @@
  ******************************************************************************
  */
 
+#ifndef RFAL_FEATURE_ISO_DEP
+    #error " RFAL: Module configuration missing. Please enable/disable ISO-DEP module by setting: RFAL_FEATURE_ISO_DEP. "
+#endif
+
 #if RFAL_FEATURE_ISO_DEP
 
 #if ( !RFAL_FEATURE_ISO_DEP_POLL && !RFAL_FEATURE_ISO_DEP_LISTEN )
@@ -60,8 +69,8 @@
     #error " RFAL: Invalid ISO-DEP IBlock Max length. Please change RFAL_FEATURE_ISO_DEP_IBLOCK_MAX_LEN. "
 #endif
 
-/* Check for valid APDU length. */
-#if( (RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN < RFAL_FEATURE_ISO_DEP_IBLOCK_MAX_LEN) )
+/* Check for valid APDU length, It must be n*IBlock */
+#if( (RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN < RFAL_FEATURE_ISO_DEP_IBLOCK_MAX_LEN) || (RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN % RFAL_FEATURE_ISO_DEP_IBLOCK_MAX_LEN) )
     #error " RFAL: Invalid ISO-DEP APDU Max length. Please change RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN. "
 #endif
 
@@ -128,7 +137,7 @@
 /*! Maximum length of control message (no INF) */
 #define ISODEP_CONTROLMSG_BUF_LEN       (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN + RFAL_ISODEP_NAD_LEN + ISODEP_SWTX_PARAM_LEN)
 
-#define ISODEP_FWT_DEACTIVATION         (71680U)     /*!< FWT used for DESELECT  Digital 2.2 B10  ISO1444-4 7.2 & 8.1 */
+#define ISODEP_FWT_DEACTIVATION         (71680U)     /*!< FWT to be used after DESELECT, Digital 1.0 A9   */
 #define ISODEP_MAX_RERUNS               (0x0FFFFFFFU)/*!< Maximum rerun retrys for a blocking protocol run*/
 
 
@@ -149,13 +158,13 @@
 #define ISODEP_SFGI_MAX                 (14U)     /*!< Maximum value for FWI Digital 1.1 13.6.2.22 */
 
 
-#define RFAL_ISODEP_SPARAM_TVL_HDR_LEN  (2U)                                                   /*!< S(PARAMETERS) TVL header length: Tag + Len */
-#define RFAL_ISODEP_SPARAM_HDR_LEN      (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_SPARAM_TVL_HDR_LEN) /*!< S(PARAMETERS) header length: PCB + Tag + Len */
+#define RFAL_ISODEP_SPARAM_TVL_HDR_LEN  (2U)                                                   /*!< S(PARAMETERS) TVL header lenght: Tag + Len */
+#define RFAL_ISODEP_SPARAM_HDR_LEN      (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_SPARAM_TVL_HDR_LEN) /*!< S(PARAMETERS) header lenght: PCB + Tag + Len */
 
 
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
-#define RFAL_ISODEP_NO_PARAM                   (0U)     /*!< No parameter flag for rfalIsoDepHandleControlMsg() */
+#define RFAL_ISODEP_NO_PARAM                   (0U)     /*!< No parameter flag for isoDepHandleControlMsg()     */
 
 #define RFAL_ISODEP_CMD_RATS                   (0xE0U)  /*!< RATS command   Digital 1.1  13.6.1                 */
 
@@ -165,7 +174,6 @@
 #define RFAL_ISODEP_ATS_T0_FSCI_MASK           (0x0FU)                                                /*!< ATS T0's FSCI mask   Digital 1.1  13.6.2 */
 #define RFAL_ISODEP_ATS_TB_FWI_SHIFT           (4U)                                                   /*!< ATS TB's FWI shift   Digital 1.1  13.6.2 */
 #define RFAL_ISODEP_ATS_FWI_MASK               (0x0FU)                                                /*!< ATS TB's FWI shift   Digital 1.1  13.6.2 */
-#define RFAL_ISODEP_ATS_TL_POS                 (0x00U)                                                /*!< ATS TL's position    Digital 1.1  13.6.2 */
 
 
 #define RFAL_ISODEP_PPS_SB                     (0xD0U)  /*!< PPS REQ PPSS's SB value (no CID)   ISO14443-4  5.3 */
@@ -190,16 +198,14 @@
 #define RFAL_ISODEP_ATTRIB_HDR_LEN             (9U)     /*!< ATTRIB REQ header length       Digital 1.1  14.6.1 */
 
 #define RFAL_ISODEP_ATTRIB_RES_HDR_LEN         (1U)     /*!< ATTRIB RES header length       Digital 1.1  14.6.2 */
-#define RFAL_ISODEP_ATTRIB_RES_MBLIDID_POS     (0U)     /*!< ATTRIB RES MBLI|DID position   Digital 1.1  14.6.2 */
 #define RFAL_ISODEP_ATTRIB_RES_DID_MASK        (0x0FU)  /*!< ATTRIB RES DID mask            Digital 1.1  14.6.2 */
-#define RFAL_ISODEP_ATTRIB_RES_MBLI_MASK       (0x0FU)  /*!< ATTRIB RES MBLI mask           Digital 1.1  14.6.2 */
-#define RFAL_ISODEP_ATTRIB_RES_MBLI_SHIFT      (4U)     /*!< ATTRIB RES MBLI shift          Digital 1.1  14.6.2 */
+#define RFAL_ISODEP_ATTRIB_RES_MLBI_MASK       (0x0FU)  /*!< ATTRIB RES MBLI mask           Digital 1.1  14.6.2 */
+#define RFAL_ISODEP_ATTRIB_RES_MLBI_SHIFT      (4U)     /*!< ATTRIB RES MBLI shift          Digital 1.1  14.6.2 */
 
 #define RFAL_ISODEP_DID_MASK                   (0x0FU)  /*!< ISODEP's DID mask                                  */
 #define RFAL_ISODEP_DID_00                     (0U)     /*!< ISODEP's DID value 0                               */
 
 #define RFAL_ISODEP_FSDI_MAX_NFC               (8U)     /*!< Max FSDI value   Digital 2.0  14.6.1.9 & B7 & B8   */
-#define RFAL_ISODEP_FSDI_MAX_NFC_21            (0x0CU)  /*!< Max FSDI value   Digital 2.1  14.6.1.9 & Table 72  */
 #define RFAL_ISODEP_FSDI_MAX_EMV               (0x0CU)  /*!< Max FSDI value   EMVCo 3.0  5.7.2.5                */
 
 #define RFAL_ISODEP_RATS_PARAM_FSDI_MASK       (0xF0U)  /*!< Mask bits for FSDI in RATS                         */
@@ -237,8 +243,8 @@
 /*! Delta frame waiting time = 16/fc  Digital 1.0  11.7.1.3 & A.7*/
 #define RFAL_ISODEP_DFWT_10                      16U
 
-/*! Delta frame waiting time = 16/fc  Digital 2.0  14.8.1.3 & B.7*/
-#define RFAL_ISODEP_DFWT_20                      49152U
+/*! Delta frame waiting time = 16/fc  Digital 1.1  13.8.1.3 & A.8*/
+#define RFAL_ISODEP_DFWT_11                      49152U
 
 /*
  ******************************************************************************
@@ -246,61 +252,60 @@
  ******************************************************************************
  */
 
-#define rfalIsoDep_PCBisIBlock( pcb )       ( ((pcb) & (ISODEP_PCB_xBLOCK_MASK | ISODEP_PCB_IB_VALID_MASK)) == (ISODEP_PCB_IBLOCK | ISODEP_PCB_IB_VALID_VAL)) /*!< Checks if pcb is a I-Block */
-#define rfalIsoDep_PCBisRBlock( pcb )       ( ((pcb) & (ISODEP_PCB_xBLOCK_MASK | ISODEP_PCB_RB_VALID_MASK)) == (ISODEP_PCB_RBLOCK | ISODEP_PCB_RB_VALID_VAL)) /*!< Checks if pcb is a R-Block */
-#define rfalIsoDep_PCBisSBlock( pcb )       ( ((pcb) & (ISODEP_PCB_xBLOCK_MASK | ISODEP_PCB_SB_VALID_MASK)) == (ISODEP_PCB_SBLOCK | ISODEP_PCB_SB_VALID_VAL)) /*!< Checks if pcb is a S-Block */
+#define isoDep_PCBisIBlock( pcb )       ( ((pcb) & (ISODEP_PCB_xBLOCK_MASK | ISODEP_PCB_IB_VALID_MASK)) == (ISODEP_PCB_IBLOCK | ISODEP_PCB_IB_VALID_VAL)) /*!< Checks if pcb is a I-Block */
+#define isoDep_PCBisRBlock( pcb )       ( ((pcb) & (ISODEP_PCB_xBLOCK_MASK | ISODEP_PCB_RB_VALID_MASK)) == (ISODEP_PCB_RBLOCK | ISODEP_PCB_RB_VALID_VAL)) /*!< Checks if pcb is a R-Block */
+#define isoDep_PCBisSBlock( pcb )       ( ((pcb) & (ISODEP_PCB_xBLOCK_MASK | ISODEP_PCB_SB_VALID_MASK)) == (ISODEP_PCB_SBLOCK | ISODEP_PCB_SB_VALID_VAL)) /*!< Checks if pcb is a S-Block */
 
-#define rfalIsoDep_PCBisChaining( pcb )     ( ((pcb) & ISODEP_PCB_CHAINING_BIT) == ISODEP_PCB_CHAINING_BIT)  /*!< Checks if pcb is indicating chaining         */
-                                                                                                                                                               
-#define rfalIsoDep_PCBisDeselect( pcb )     ( ((pcb) & ISODEP_PCB_Sxx_MASK) == ISODEP_PCB_DESELECT)          /*!< Checks if pcb is indicating DESELECT         */
-#define rfalIsoDep_PCBisWTX( pcb )          ( ((pcb) & ISODEP_PCB_Sxx_MASK) == ISODEP_PCB_WTX)               /*!< Checks if pcb is indicating WTX              */
-                                                                                                                                                               
-#define rfalIsoDep_PCBisACK( pcb )          ( ((pcb) & ISODEP_PCB_Rx_MASK) == ISODEP_PCB_ACK)                /*!< Checks if pcb is indicating ACK              */
-#define rfalIsoDep_PCBisNAK( pcb )          ( ((pcb) & ISODEP_PCB_Rx_MASK) == ISODEP_PCB_NAK)                /*!< Checks if pcb is indicating ACK              */
-                                                                                                                                                               
-#define rfalIsoDep_PCBhasDID( pcb )         ( ((pcb) & ISODEP_PCB_DID_BIT) == ISODEP_PCB_DID_BIT)            /*!< Checks if pcb is indicating DID              */
-#define rfalIsoDep_PCBhasNAD( pcb )         ( ((pcb) & ISODEP_PCB_NAD_BIT) == ISODEP_PCB_NAD_BIT)            /*!< Checks if pcb is indicating NAD              */
+#define isoDep_PCBisChaining( pcb )     ( ((pcb) & ISODEP_PCB_CHAINING_BIT) == ISODEP_PCB_CHAINING_BIT) /*!< Checks if pcb is indicating chaining */
 
+#define isoDep_PCBisDeselect( pcb )     ( ((pcb) & ISODEP_PCB_Sxx_MASK) == ISODEP_PCB_DESELECT)         /*!< Checks if pcb is indicating DESELECT */
+#define isoDep_PCBisWTX( pcb )          ( ((pcb) & ISODEP_PCB_Sxx_MASK) == ISODEP_PCB_WTX)              /*!< Checks if pcb is indicating WTX      */
 
-#define rfalIsoDep_PCBisIChaining( pcb )    ( rfalIsoDep_PCBisIBlock(pcb) && rfalIsoDep_PCBisChaining(pcb) ) /*!< Checks if pcb is I-Block indicating chaining */
-                                                                                                                                                               
-#define rfalIsoDep_PCBisSDeselect( pcb )    ( rfalIsoDep_PCBisSBlock(pcb) && rfalIsoDep_PCBisDeselect(pcb) ) /*!< Checks if pcb is S-Block indicating DESELECT */
-#define rfalIsoDep_PCBisSWTX( pcb )         ( rfalIsoDep_PCBisSBlock(pcb) && rfalIsoDep_PCBisWTX(pcb) )      /*!< Checks if pcb is S-Block indicating WTX      */
-                                                                                                                                                               
-#define rfalIsoDep_PCBisRACK( pcb )         ( rfalIsoDep_PCBisRBlock(pcb) && rfalIsoDep_PCBisACK(pcb) )      /*!< Checks if pcb is R-Block indicating ACK      */
-#define rfalIsoDep_PCBisRNAK( pcb )         ( rfalIsoDep_PCBisRBlock(pcb) && rfalIsoDep_PCBisNAK(pcb) )      /*!< Checks if pcb is R-Block indicating NAK      */
+#define isoDep_PCBisACK( pcb )          ( ((pcb) & ISODEP_PCB_Rx_MASK) == ISODEP_PCB_ACK)               /*!< Checks if pcb is indicating ACK      */
+#define isoDep_PCBisNAK( pcb )          ( ((pcb) & ISODEP_PCB_Rx_MASK) == ISODEP_PCB_NAK)               /*!< Checks if pcb is indicating ACK      */
+
+#define isoDep_PCBhasDID( pcb )         ( ((pcb) & ISODEP_PCB_DID_BIT) == ISODEP_PCB_DID_BIT)           /*!< Checks if pcb is indicating DID      */
+#define isoDep_PCBhasNAD( pcb )         ( ((pcb) & ISODEP_PCB_NAD_BIT) == ISODEP_PCB_NAD_BIT)           /*!< Checks if pcb is indicating NAD      */
 
 
-#define rfalIsoDep_PCBIBlock( bn )          ( (uint8_t)( 0x00U | ISODEP_PCB_IBLOCK | ISODEP_PCB_B2_BIT | ((bn) & ISODEP_PCB_BN_MASK) ))  /*!< Returns an I-Block with the given block number (bn)                     */  
-#define rfalIsoDep_PCBIBlockChaining( bn )  ( (uint8_t)(rfalIsoDep_PCBIBlock(bn) | ISODEP_PCB_CHAINING_BIT))                             /*!< Returns an I-Block with the given block number (bn) indicating chaining */
+#define isoDep_PCBisIChaining( pcb )    ( isoDep_PCBisIBlock(pcb) && isoDep_PCBisChaining(pcb) )       /*!< Checks if pcb is I-Block indicating chaining*/
 
-#define rfalIsoDep_PCBRBlock( bn )          ( (uint8_t)( 0x00U | ISODEP_PCB_RBLOCK | ISODEP_PCB_B6_BIT | ISODEP_PCB_B2_BIT | ((bn) & ISODEP_PCB_BN_MASK) ) ) /*!< Returns an R-Block with the given block number (bn)                */
-#define rfalIsoDep_PCBRACK( bn )            ( (uint8_t)( rfalIsoDep_PCBRBlock( bn ) | ISODEP_PCB_ACK ) )                                                      /*!< Returns an R-Block with the given block number (bn) indicating ACK */
-#define rfalIsoDep_PCBRNAK( bn )            ( (uint8_t)( rfalIsoDep_PCBRBlock( bn ) | ISODEP_PCB_NAK ) )                                                      /*!< Returns an R-Block with the given block number (bn) indicating NAK */
+#define isoDep_PCBisSDeselect( pcb )    ( isoDep_PCBisSBlock(pcb) && isoDep_PCBisDeselect(pcb) )       /*!< Checks if pcb is S-Block indicating DESELECT*/
+#define isoDep_PCBisSWTX( pcb )         ( isoDep_PCBisSBlock(pcb) && isoDep_PCBisWTX(pcb) )            /*!< Checks if pcb is S-Block indicating WTX     */
+
+#define isoDep_PCBisRACK( pcb )         ( isoDep_PCBisRBlock(pcb) && isoDep_PCBisACK(pcb) )            /*!< Checks if pcb is R-Block indicating ACK     */
+#define isoDep_PCBisRNAK( pcb )         ( isoDep_PCBisRBlock(pcb) && isoDep_PCBisNAK(pcb) )            /*!< Checks if pcb is R-Block indicating NAK     */
 
 
-#define rfalIsoDep_GetBN( pcb )             ( (uint8_t) ((pcb) & ISODEP_PCB_BN_MASK   ) )                    /*!< Returns the block number (bn) from the given pcb                 */
-#define rfalIsoDep_GetWTXM( inf )           ( (uint8_t) ((inf) & ISODEP_SWTX_WTXM_MASK) )                    /*!< Returns the WTX value from the given inf byte                    */
-#define rfalIsoDep_isWTXMValid( wtxm )      (((wtxm) >= ISODEP_WTXM_MIN) && ((wtxm) <= ISODEP_WTXM_MAX))     /*!< Checks if the given wtxm is valid                                */
+#define isoDep_PCBIBlock( bn )          ( (uint8_t)( 0x00U | ISODEP_PCB_IBLOCK | ISODEP_PCB_B2_BIT | ((bn) & ISODEP_PCB_BN_MASK) ))  /*!< Returns an I-Block with the given block number (bn)                     */  
+#define isoDep_PCBIBlockChaining( bn )  ( (uint8_t)(isoDep_PCBIBlock(bn) | ISODEP_PCB_CHAINING_BIT))                              /*!< Returns an I-Block with the given block number (bn) indicating chaining */
 
-#define rfalIsoDep_WTXMListenerMax( fwt )   ( MIN( (uint8_t)(ISODEP_FWT_LIS_MAX / (fwt)), ISODEP_WTXM_MAX) ) /*!< Calculates the Max WTXM value for the given fwt as a Listener    */
+#define isoDep_PCBRBlock( bn )          ( (uint8_t)( 0x00U | ISODEP_PCB_RBLOCK | ISODEP_PCB_B6_BIT | ISODEP_PCB_B2_BIT | ((bn) & ISODEP_PCB_BN_MASK) ) ) /*!< Returns an R-Block with the given block number (bn)                */
+#define isoDep_PCBRACK( bn )            ( (uint8_t)( isoDep_PCBRBlock( bn ) | ISODEP_PCB_ACK ) )                                                      /*!< Returns an R-Block with the given block number (bn) indicating ACK */
+#define isoDep_PCBRNAK( bn )            ( (uint8_t)( isoDep_PCBRBlock( bn ) | ISODEP_PCB_NAK ) )                                                      /*!< Returns an R-Block with the given block number (bn) indicating NAK */
 
-#define rfalIsoDepCalcdSGFT( s )            (384U  * ((uint32_t)1U << (s)))                                  /*!< Calculates the dSFGT with given SFGI  Digital 1.1  13.8.2.1 & A.6*/
-#define rfalIsoDepCalcSGFT( s )             (4096U * ((uint32_t)1U << (s)))                                  /*!< Calculates the SFGT with given SFGI  Digital 1.1  13.8.2         */
 
-#define rfalIsoDep_PCBNextBN( bn )          (((uint8_t)(bn)^0x01U) & ISODEP_PCB_BN_MASK)                     /*!< Returns the value of the next block number based on bn           */
-#define rfalIsoDep_PCBPrevBN( bn )          rfalIsoDep_PCBNextBN(bn)                                             /*!< Returns the value of the previous block number based on bn   */
-#define rfalIsoDep_ToggleBN( bn )           ((bn) = (((bn)^0x01U) & ISODEP_PCB_BN_MASK) )                    /*!< Toggles the block number value of the given bn                   */
+#define isoDep_GetBN( pcb )             ( (uint8_t) ((pcb) & ISODEP_PCB_BN_MASK   ) )                    /*!< Returns the block number (bn) from the given pcb */
+#define isoDep_GetWTXM( inf )           ( (uint8_t) ((inf) & ISODEP_SWTX_WTXM_MASK) )                    /*!< Returns the WTX value from the given inf byte    */
+#define isoDep_isWTXMValid( wtxm )      (((wtxm) >= ISODEP_WTXM_MIN) && ((wtxm) <= ISODEP_WTXM_MAX))     /*!< Checks if the given wtxm is valid                */
 
-#define rfalIsoDep_WTXAdjust( v )           ((v) - ((v)>>3))                                                 /*!< Adjust WTX timer value to a percentage of the total, current 88% */
+#define isoDep_WTXMListenerMax( fwt )   ( MIN( (uint8_t)(ISODEP_FWT_LIS_MAX / (fwt)), ISODEP_WTXM_MAX) ) /*!< Calculates the Max WTXM value for the given fwt as a Listener    */
+
+#define isoDepCalcdSGFT( s )            (384U  * ((uint32_t)1U << (s)))                                  /*!< Calculates the dSFGT with given SFGI  Digital 1.1  13.8.2.1 & A.6*/
+#define isoDepCalcSGFT( s )             (4096U * ((uint32_t)1U << (s)))                                  /*!< Calculates the SFGT with given SFGI  Digital 1.1  13.8.2         */
+
+#define isoDep_PCBNextBN( bn )          (((uint8_t)(bn)^0x01U) & ISODEP_PCB_BN_MASK)                     /*!< Returns the value of the next block number based on bn     */
+#define isoDep_PCBPrevBN( bn )          isoDep_PCBNextBN(bn)                                             /*!< Returns the value of the previous block number based on bn */
+#define isoDep_ToggleBN( bn )           ((bn) = (((bn)^0x01U) & ISODEP_PCB_BN_MASK) )                    /*!< Toggles the block number value of the given bn             */
+
+#define isoDep_WTXAdjust( v )           ((v) - ((v)>>3))                                                 /*!< Adjust WTX timer value to a percentage of the total, current 88% */
 
 
 /*! ISO 14443-4 7.5.6.2 & Digital 1.1 - 15.2.6.2  The CE SHALL NOT attempt error recovery and remains in Rx mode upon Transmission or a Protocol Error */
-#define rfalIsoDepReEnableRx( rxB, rxBL, rxL ) rfalTransceiveBlockingTx( NULL, 0, rxB, rxBL, rxL, RFAL_TXRX_FLAGS_DEFAULT, RFAL_FWT_NONE )
+#define isoDepReEnableRx( rxB, rxBL, rxL )              rfalTransceiveBlockingTx( NULL, 0, rxB, rxBL, rxL, RFAL_TXRX_FLAGS_DEFAULT, RFAL_FWT_NONE )
 
-#define rfalIsoDepTimerStart( timer, time_ms ) do{ platformTimerDestroy( timer ); (timer) = platformTimerCreate((uint16_t)(time_ms));} while (0) /*!< Configures and starts the WTX timer  */
-#define rfalIsoDepTimerisExpired( timer )      platformTimerIsExpired( timer )                               /*!< Checks WTX timer has expired                     */
-#define rfalIsoDepTimerDestroy( timer )        platformTimerDestroy( timer )                                 /*!< Destroys WTX timer                               */
+#define isoDepTimerStart( timer, time_ms ) (timer) = platformTimerCreate((uint16_t)(time_ms))            /*!< Configures and starts the WTX timer  */
+#define isoDepTimerisExpired( timer )      platformTimerIsExpired( timer )                               /*!< Checks WTX timer has expired         */
 
 /*
  ******************************************************************************
@@ -311,8 +316,8 @@
  /*! Internal structure to be used in handling of S(PARAMETRS) only */
 typedef struct
 {    
-    uint8_t               pcb;       /*!< PCB byte                      */
-    rfalIsoDepSParameter  sParam;    /*!< S(PARAMETERS)                 */
+    uint8_t               pcb;        /*!< PCB byte                     */
+    rfalIsoDepSParameter  sParam;     /*!< S(PARAMETERS)                */
 } rfalIsoDepControlMsgSParam;
 
 /*! Enumeration of the possible control message types */
@@ -341,14 +346,9 @@ typedef enum
         
     ISODEP_ST_PICC_ACT_ATS,         /*!< PICC has replied to RATS (ATS) */
     ISODEP_ST_PICC_ACT_ATTRIB,      /*!< PICC has replied to ATTRIB     */
-    ISODEP_ST_PICC_RX,              /*!< PICC Reception State           */
+    ISODEP_ST_PICC_RX,              /*!< PICC REception State           */
     ISODEP_ST_PICC_SWTX,            /*!< PICC Waiting Time eXtension    */
-    ISODEP_ST_PICC_SDSL,            /*!< PICC S(DSL) response ongoing   */
     ISODEP_ST_PICC_TX,              /*!< PICC Transmission State        */
-    
-    ISODEP_ST_PCD_ACT_RATS,            /*!< PCD activation (RATS)          */
-    ISODEP_ST_PCD_ACT_PPS,            /*!< PCD activation (PPS)           */
-    
 } rfalIsoDepState;
 
 
@@ -364,9 +364,7 @@ typedef struct{
   uint8_t         nad;           /*!< Current DID                               */
   uint8_t         cntIRetrys;    /*!< I-Block retry counter                     */
   uint8_t         cntRRetrys;    /*!< R-Block retry counter                     */
-  uint8_t         cntSDslRetrys; /*!< S(DESELECT) retry counter                 */
-  uint8_t         cntSWtxRetrys; /*!< Overall S(WTX) retry counter              */
-  uint8_t         cntSWtxNack;   /*!< R(NACK) answered with S(WTX) counter      */
+  uint8_t         cntSRetrys;    /*!< S-Block retry counter                     */
   uint32_t        fwt;           /*!< Current FWT (Frame Waiting Time)          */
   uint32_t        dFwt;          /*!< Current delta FWT                         */
   uint16_t        fsx;           /*!< Current FSx FSC or FSD (max Frame size)   */
@@ -395,33 +393,20 @@ typedef struct{
   bool            isTxPending;   /*!< Flag pending Block while waiting WTX Ack  */
   bool            isWait4WTX;    /*!< Flag for waiting WTX Ack                  */
   
+  uint32_t        SFGTTimer;     /*!< Timer used for SFGT                       */
+  
   uint8_t         maxRetriesI;   /*!< Number of retries for a I-Block           */
+  uint8_t         maxRetriesS;   /*!< Number of retries for a S-Block           */
   uint8_t         maxRetriesR;   /*!< Number of retries for a R-Block           */
-  uint8_t         maxRetriesSDSL;/*!< Number of retries for S(DESELECT) errors  */
-  uint8_t         maxRetriesSWTX;/*!< Number of retries for S(WTX) errors       */
-  uint8_t         maxRetriesSnWTX;/*!< Number of retries S(WTX) replied w NACK  */
   uint8_t         maxRetriesRATS;/*!< Number of retries for RATS                */
   
   rfalComplianceMode compMode;   /*!< Compliance mode                           */
   
-  uint8_t         ctrlBuf[ISODEP_CONTROLMSG_BUF_LEN];    /*!< Control msg buf   */
-  uint16_t        ctrlRxLen;  /*!< Control msg rcvd len                         */
+  uint8_t         ctrlRxBuf[ISODEP_CONTROLMSG_BUF_LEN];  /*!< Control msg buf   */
+  uint16_t        ctrlRxLen;  /*!< Control msg rcvd len (used only for DSL)     */
   
-  union {  /*  PRQA S 0750 # MISRA 19.2 - Members of the union will not be used concurrently, only one frame at a time */      
-    #if RFAL_FEATURE_NFCA
-        rfalIsoDepRats       ratsReq;
-        rfalIsoDepPpsReq     ppsReq;
-    #endif /* RFAL_FEATURE_NFCA */
-          
-    #if RFAL_FEATURE_NFCB
-        rfalIsoDepAttribCmd  attribReq;
-    #endif /* RFAL_FEATURE_NFCB */
-  }actv;                                    /*!< Activation buffer              */
   
-  uint8_t*                  rxLen8;         /*!< Receive length (8-bit)         */
-  rfalIsoDepDevice*         actvDev;        /*!< Activation Device Info         */
-  rfalIsoDepListenActvParam actvParam;      /*!< Listen Activation context      */
-  
+  rfalIsoDepListenActvParam actvParam;  /*!< Listen Activation context          */
   
   rfalIsoDepApduTxRxParam APDUParam;        /*!< APDU TxRx params               */
   uint16_t                APDUTxPos;        /*!< APDU Tx position               */
@@ -429,6 +414,7 @@ typedef struct{
   bool                    isAPDURxChaining; /*!< APDU Transceive chaining flag  */
   
 }rfalIsoDep;
+
 
 
 /*
@@ -444,34 +430,22 @@ static rfalIsoDep gIsoDep;    /*!< ISO-DEP Module instance               */
  * LOCAL FUNCTION PROTOTYPES
  ******************************************************************************
  */
-static void rfalIsoDepClearCounters( void );
-static ReturnCode rfalIsoDepTx( uint8_t pcb, const uint8_t* txBuf, uint8_t *infBuf, uint16_t infLen, uint32_t fwt );
-static ReturnCode rfalIsoDepHandleControlMsg( rfalIsoDepControlMsg controlMsg, uint8_t param );
+static void isoDepClearCounters( void );
+static ReturnCode isoDepTx( uint8_t pcb, const uint8_t* txBuf, uint8_t *infBuf, uint16_t infLen, uint32_t fwt );
+static ReturnCode isoDepHandleControlMsg( rfalIsoDepControlMsg controlMsg, uint8_t param );
 static void rfalIsoDepApdu2IBLockParam( rfalIsoDepApduTxRxParam apduParam, rfalIsoDepTxRxParam *iBlockParam, uint16_t txPos, uint16_t rxPos );
 
 #if RFAL_FEATURE_ISO_DEP_POLL
-    static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsChaining );
+    static ReturnCode isoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsChaining );
     static void rfalIsoDepCalcBitRate(rfalBitRate maxAllowedBR, uint8_t piccBRCapability, rfalBitRate *dsi, rfalBitRate *dri);
     static uint32_t rfalIsoDepSFGI2SFGT( uint8_t sfgi );
-
-    #if RFAL_FEATURE_NFCA
-        static ReturnCode rfalIsoDepStartRATS( rfalIsoDepFSxI FSDI, uint8_t DID, rfalIsoDepAts *ats, uint8_t *atsLen );
-        static ReturnCode rfalIsoDepGetRATSStatus( void );
-        static ReturnCode rfalIsoDepStartPPS( uint8_t DID, rfalBitRate DSI, rfalBitRate DRI, rfalIsoDepPpsRes *ppsRes );
-        static ReturnCode rfalIsoDepGetPPSSTatus( void );
-    #endif /* RFAL_FEATURE_NFCA */
-
-    #if RFAL_FEATURE_NFCB
-        static ReturnCode rfalIsoDepStartATTRIB( const uint8_t* nfcid0, uint8_t PARAM1, rfalBitRate DSI, rfalBitRate DRI, rfalIsoDepFSxI FSDI, uint8_t PARAM3, uint8_t DID, const uint8_t* HLInfo, uint8_t HLInfoLen, uint32_t fwt, rfalIsoDepAttribRes *attribRes, uint8_t *attribResLen );
-        static ReturnCode rfalIsoDepGetATTRIBStatus( void );
-    #endif /* RFAL_FEATURE_NFCB */
-    
-#endif /* RFAL_FEATURE_ISO_DEP_POLL */
-
-#if RFAL_FEATURE_ISO_DEP_LISTEN
-    static ReturnCode rfalIsoDepDataExchangePICC( void );
-    static ReturnCode rfalIsoDepReSendControlMsg( void );
 #endif
+#if RFAL_FEATURE_ISO_DEP_LISTEN
+    static ReturnCode isoDepDataExchangePICC( void );
+    static ReturnCode isoDepReSendControlMsg( void );
+#endif
+
+
 
 
 /*
@@ -481,22 +455,19 @@ static void rfalIsoDepApdu2IBLockParam( rfalIsoDepApduTxRxParam apduParam, rfalI
  */
 
 /*******************************************************************************/
-static void rfalIsoDepClearCounters( void )
+static void isoDepClearCounters( void )
 {
-    gIsoDep.cntIRetrys    = 0;
-    gIsoDep.cntRRetrys    = 0;
-    gIsoDep.cntSDslRetrys = 0;
-    gIsoDep.cntSWtxRetrys = 0;
-    gIsoDep.cntSWtxNack   = 0;
+    gIsoDep.cntIRetrys   = 0;
+    gIsoDep.cntRRetrys   = 0;
+    gIsoDep.cntSRetrys   = 0;
 }
 
 /*******************************************************************************/
-static ReturnCode rfalIsoDepTx( uint8_t pcb, const uint8_t* txBuf, uint8_t *infBuf, uint16_t infLen, uint32_t fwt )
+static ReturnCode isoDepTx( uint8_t pcb, const uint8_t* txBuf, uint8_t *infBuf, uint16_t infLen, uint32_t fwt )
 {
     uint8_t    *txBlock;
     uint16_t   txBufLen;
     uint8_t    computedPcb;
-    rfalTransceiveContext    ctx;
 
     
     txBlock         = infBuf;                      /* Point to beginning of the INF, and go backwards     */
@@ -517,7 +488,7 @@ static ReturnCode rfalIsoDepTx( uint8_t pcb, const uint8_t* txBuf, uint8_t *infB
     computedPcb = pcb;
     if ((gIsoDep.did != RFAL_ISODEP_NO_DID) || ((gIsoDep.did == RFAL_ISODEP_DID_00) && gIsoDep.lastDID00) ) {   computedPcb |= ISODEP_PCB_DID_BIT;            }
     if (gIsoDep.nad != RFAL_ISODEP_NO_NAD)                                                                  {   computedPcb |= ISODEP_PCB_NAD_BIT;            }
-    if ((gIsoDep.isTxChaining) && (rfalIsoDep_PCBisIBlock(computedPcb)) )                                       {   computedPcb |= ISODEP_PCB_CHAINING_BIT;       } 
+    if ((gIsoDep.isTxChaining) && (isoDep_PCBisIBlock(computedPcb)) )                                       {   computedPcb |= ISODEP_PCB_CHAINING_BIT;       } 
 
     
     /*******************************************************************************/
@@ -542,21 +513,20 @@ static ReturnCode rfalIsoDepTx( uint8_t pcb, const uint8_t* txBuf, uint8_t *infB
         return ERR_NOTSUPP;
     }
         
-    
-    rfalCreateByteFlagsTxRxContext( ctx, txBlock, txBufLen, gIsoDep.rxBuf, gIsoDep.rxBufLen, gIsoDep.rxLen, RFAL_TXRX_FLAGS_DEFAULT, ((gIsoDep.role == ISODEP_ROLE_PICC) ? RFAL_FWT_NONE : fwt ) );
-    return rfalStartTransceive( &ctx );
+    return rfalTransceiveBlockingTx( txBlock, txBufLen, gIsoDep.rxBuf, gIsoDep.rxBufLen, gIsoDep.rxLen, RFAL_TXRX_FLAGS_DEFAULT, ((gIsoDep.role == ISODEP_ROLE_PICC) ? RFAL_FWT_NONE : fwt ) );
 }
 
 /*******************************************************************************/
-static ReturnCode rfalIsoDepHandleControlMsg( rfalIsoDepControlMsg controlMsg, uint8_t param )
+static ReturnCode isoDepHandleControlMsg( rfalIsoDepControlMsg controlMsg, uint8_t param )
 {
     uint8_t  pcb;   
+    uint8_t  ctrlMsgBuf[ISODEP_CONTROLMSG_BUF_LEN];
     uint8_t  infLen;
     uint32_t fwtTemp;
     
     infLen  = 0;
     fwtTemp = (gIsoDep.fwt + gIsoDep.dFwt);
-    ST_MEMSET( gIsoDep.ctrlBuf, 0x00, ISODEP_CONTROLMSG_BUF_LEN );
+    ST_MEMSET( ctrlMsgBuf, 0x00, ISODEP_CONTROLMSG_BUF_LEN );
     
     switch( controlMsg )
     {
@@ -565,36 +535,31 @@ static ReturnCode rfalIsoDepHandleControlMsg( rfalIsoDepControlMsg controlMsg, u
             
             if( gIsoDep.cntRRetrys++ > gIsoDep.maxRetriesR )
             {
-                return ERR_TIMEOUT; /* NFC Forum mandates timeout or transmission error depending on previous errors */
+                return ERR_PROTO;
             }
             
-            pcb = rfalIsoDep_PCBRACK( gIsoDep.blockNumber );
+            pcb = isoDep_PCBRACK( gIsoDep.blockNumber );
             break;
-            
             
         /*******************************************************************************/
         case ISODEP_R_NAK:
-            
-            if( ( gIsoDep.cntRRetrys++ >  gIsoDep.maxRetriesR   )   ||      /* Max R Block retries reached */
-                ( gIsoDep.cntSWtxNack  >= gIsoDep.maxRetriesSnWTX )   )     /* Max number PICC is allowed to respond with S(WTX) to R(NAK) */
+            if( gIsoDep.cntRRetrys++ > gIsoDep.maxRetriesR )
             {
                 return ERR_TIMEOUT;
             }
             
-            pcb = rfalIsoDep_PCBRNAK( gIsoDep.blockNumber );
+            pcb = isoDep_PCBRNAK( gIsoDep.blockNumber );            
             break;
-            
             
         /*******************************************************************************/
         case ISODEP_S_WTX:
-
-            if( (gIsoDep.cntSWtxRetrys++ > gIsoDep.maxRetriesSWTX) && (gIsoDep.maxRetriesSWTX != RFAL_ISODEP_MAX_WTX_RETRYS_ULTD) )
+            if( gIsoDep.cntSRetrys++ > gIsoDep.maxRetriesS )
             {
                 return ERR_PROTO;
             }
             
             /* Check if WTXM is valid */
-            if( ! rfalIsoDep_isWTXMValid(param) )
+            if( ! isoDep_isWTXMValid(param) )
             {
                 return ERR_PROTO;
             }
@@ -608,16 +573,14 @@ static ReturnCode rfalIsoDepHandleControlMsg( rfalIsoDepControlMsg controlMsg, u
             }
             
             pcb = ISODEP_PCB_SWTX;
-            gIsoDep.ctrlBuf[ RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN + infLen++] = param;
+            ctrlMsgBuf[ RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN + infLen++] = param;
             break;
-            
             
         /*******************************************************************************/
         case ISODEP_S_DSL:
-            
-            if( gIsoDep.cntSDslRetrys++ > gIsoDep.maxRetriesSDSL )
+            if( gIsoDep.cntSRetrys++ > gIsoDep.maxRetriesS )
             {
-                return ERR_TIMEOUT; /* NFC Forum mandates timeout or transmission error depending on previous errors */
+                return ERR_PROTO;
             }
             
             if( gIsoDep.role == ISODEP_ROLE_PCD )
@@ -634,31 +597,31 @@ static ReturnCode rfalIsoDepHandleControlMsg( rfalIsoDepControlMsg controlMsg, u
             return ERR_INTERNAL;
     }
     
-    return rfalIsoDepTx( pcb, gIsoDep.ctrlBuf, &gIsoDep.ctrlBuf[RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN], infLen, fwtTemp );
+    return isoDepTx( pcb, ctrlMsgBuf, &ctrlMsgBuf[RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN], infLen, fwtTemp );
 }
 
 #if RFAL_FEATURE_ISO_DEP_LISTEN
 /*******************************************************************************/
-static ReturnCode rfalIsoDepReSendControlMsg( void )
+static ReturnCode isoDepReSendControlMsg( void )
 {
-    if( rfalIsoDep_PCBisRACK( gIsoDep.lastPCB ) )
+    if( isoDep_PCBisRACK( gIsoDep.lastPCB ) )
     {
-        return rfalIsoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM );
+        return isoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM );
     }
     
-    if( rfalIsoDep_PCBisRNAK( gIsoDep.lastPCB ) )
+    if( isoDep_PCBisRNAK( gIsoDep.lastPCB ) )
     {
-        return rfalIsoDepHandleControlMsg( ISODEP_R_NAK, RFAL_ISODEP_NO_PARAM );
+        return isoDepHandleControlMsg( ISODEP_R_NAK, RFAL_ISODEP_NO_PARAM );
     }
     
-    if( rfalIsoDep_PCBisSDeselect( gIsoDep.lastPCB ) )
+    if( isoDep_PCBisSDeselect( gIsoDep.lastPCB ) )
     {
-        return rfalIsoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM );
+        return isoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM );
     }
     
-    if( rfalIsoDep_PCBisSWTX( gIsoDep.lastPCB ) )
+    if( isoDep_PCBisSWTX( gIsoDep.lastPCB ) )
     {
-        return rfalIsoDepHandleControlMsg( ISODEP_S_WTX, gIsoDep.lastWTXM );
+        return isoDepHandleControlMsg( ISODEP_S_WTX, gIsoDep.lastWTXM );
     }
     return ERR_WRONG_STATE; 
 }
@@ -690,58 +653,36 @@ void rfalIsoDepInitialize( void )
     
     gIsoDep.rxLen        = NULL;
     gIsoDep.rxBuf        = NULL;
-    gIsoDep.rxBufInfPos  = 0U;
-    gIsoDep.txBufInfPos  = 0U;
     
     gIsoDep.isTxPending  = false;
     gIsoDep.isWait4WTX   = false;
     
-    gIsoDep.compMode         = RFAL_COMPLIANCE_MODE_NFC;
-    gIsoDep.maxRetriesR      = RFAL_ISODEP_MAX_R_RETRYS;
-    gIsoDep.maxRetriesI      = RFAL_ISODEP_MAX_I_RETRYS;
-    gIsoDep.maxRetriesSDSL   = RFAL_ISODEP_MAX_DSL_RETRYS;
-    gIsoDep.maxRetriesSWTX   = RFAL_ISODEP_MAX_WTX_RETRYS;
-    gIsoDep.maxRetriesSnWTX  = RFAL_ISODEP_MAX_WTX_NACK_RETRYS;
-    gIsoDep.maxRetriesRATS   = RFAL_ISODEP_RATS_RETRIES;
+    gIsoDep.compMode       = RFAL_COMPLIANCE_MODE_NFC;
+    gIsoDep.maxRetriesR    = RFAL_ISODEP_MAX_R_RETRYS;
+    gIsoDep.maxRetriesS    = RFAL_ISODEP_MAX_S_RETRYS;
+    gIsoDep.maxRetriesI    = RFAL_ISODEP_MAX_I_RETRYS;
+    gIsoDep.maxRetriesRATS = RFAL_ISODEP_RATS_RETRIES;
     
-    gIsoDep.APDURxPos       = 0;
-    gIsoDep.APDUTxPos       = 0;
-    gIsoDep.APDUParam.rxLen = NULL;
-    gIsoDep.APDUParam.rxBuf = NULL;
-    gIsoDep.APDUParam.txBuf = NULL;
-    
-    rfalIsoDepClearCounters();
-    
-    /* Destroy any ongoing WTX timer */
-    rfalIsoDepTimerDestroy( gIsoDep.WTXTimer );
-    gIsoDep.WTXTimer = 0U;
+    isoDepClearCounters();
 }
 
 
 /*******************************************************************************/
-void rfalIsoDepInitializeWithParams( rfalComplianceMode compMode,
-                                     uint8_t maxRetriesR,
-                                     uint8_t maxRetriesSnWTX,
-                                     uint8_t maxRetriesSWTX,
-                                     uint8_t maxRetriesSDSL,
-                                     uint8_t maxRetriesI,
-                                     uint8_t maxRetriesRATS )
+void rfalIsoDepInitializeWithParams( rfalComplianceMode compMode, uint8_t maxRetriesR, uint8_t maxRetriesS, uint8_t maxRetriesI, uint8_t maxRetriesRATS )
 {
     rfalIsoDepInitialize();
     
-    gIsoDep.compMode        = compMode;
-    gIsoDep.maxRetriesR     = maxRetriesR;
-    gIsoDep.maxRetriesSnWTX = maxRetriesSnWTX;
-    gIsoDep.maxRetriesSWTX  = maxRetriesSWTX;
-    gIsoDep.maxRetriesSDSL  = maxRetriesSDSL;
-    gIsoDep.maxRetriesI     = maxRetriesI;
-    gIsoDep.maxRetriesRATS  = maxRetriesRATS;
+    gIsoDep.compMode       = compMode;
+    gIsoDep.maxRetriesR    = maxRetriesR;
+    gIsoDep.maxRetriesS    = maxRetriesS;
+    gIsoDep.maxRetriesI    = maxRetriesI;
+    gIsoDep.maxRetriesRATS = maxRetriesRATS;
 }
 
 
 #if RFAL_FEATURE_ISO_DEP_POLL
 /*******************************************************************************/
-static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsChaining )
+static ReturnCode isoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsChaining )
 {
     ReturnCode ret;
     uint8_t    rxPCB;
@@ -759,11 +700,24 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
     if (gIsoDep.did != RFAL_ISODEP_NO_DID)  { gIsoDep.hdrLen  += RFAL_ISODEP_DID_LEN;  }
     if (gIsoDep.nad != RFAL_ISODEP_NO_NAD)  { gIsoDep.hdrLen  += RFAL_ISODEP_NAD_LEN;  }
     
-    /* Check if there is enough space before the infPos to append ISO-DEP headers on rx and tx */
+    /* check if there is enough space before the infPos to append ISO-DEP headers on rx and tx */
     if( (gIsoDep.rxBufInfPos < gIsoDep.hdrLen) || (gIsoDep.txBufInfPos < gIsoDep.hdrLen) )
     {
         return ERR_PARAM;
     }
+    
+    /*******************************************************************************/
+    /* Wait until SFGT has been fulfilled (as a PCD) */
+    if(gIsoDep.SFGTTimer != 0U)
+    {
+        if( !isoDepTimerisExpired( gIsoDep.SFGTTimer ) )
+        {
+            return ERR_BUSY;
+        }
+    }
+    /* Once done, clear SFGT timer */
+    gIsoDep.SFGTTimer = 0;
+    
     
     /*******************************************************************************/
     switch( gIsoDep.state )
@@ -774,7 +728,7 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
         
         /*******************************************************************************/
         case ISODEP_ST_PCD_TX:
-            ret = rfalIsoDepTx( rfalIsoDep_PCBIBlock( gIsoDep.blockNumber ), gIsoDep.txBuf, &gIsoDep.txBuf[gIsoDep.txBufInfPos], gIsoDep.txBufLen, (gIsoDep.fwt + gIsoDep.dFwt) );
+            ret = isoDepTx( isoDep_PCBIBlock( gIsoDep.blockNumber ), gIsoDep.txBuf, &gIsoDep.txBuf[gIsoDep.txBufInfPos], gIsoDep.txBufLen, (gIsoDep.fwt + gIsoDep.dFwt) );
             switch( ret )
             {
               case ERR_NONE:
@@ -798,19 +752,19 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
                 case ERR_CRC:
                 case ERR_PAR:
                 case ERR_FRAMING:          /* added to handle test cases scenario TC_POL_NFCB_T4AT_BI_82_x_y & TC_POL_NFCB_T4BT_BI_82_x_y */
-                case ERR_INCOMPLETE_BYTE:  /* added to handle test cases scenario TC_POL_NFCB_T4AT_BI_82_x_y & TC_POL_NFCB_T4BT_BI_82_x_y */
+                case ERR_INCOMPLETE_BYTE:  /* added to handle test cases scenario TC_POL_NFCB_T4AT_BI_82_x_y & TC_POL_NFCB_T4BT_BI_82_x_y  */
                     
                     if( gIsoDep.isRxChaining )
                     {   /* Rule 5 - In PICC chaining when a invalid/timeout occurs -> R-ACK */                        
-                        EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
+                        EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
                     }
                     else if( gIsoDep.state == ISODEP_ST_PCD_WAIT_DSL )
                     {   /* Rule 8 - If s-Deselect response fails MAY retransmit */
-                        EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM ) );
+                        EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM ) );
                     }
                     else
                     {   /* Rule 4 - When a invalid block or timeout occurs -> R-NACK */
-                        EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_R_NAK, RFAL_ISODEP_NO_PARAM ) );
+                        EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_R_NAK, RFAL_ISODEP_NO_PARAM ) );
                     }
                     return ERR_BUSY;
                     
@@ -842,13 +796,13 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
             
             
             /* EMVCo doesn't allow usage of for CID or NAD   EMVCo 2.6 TAble 10.2 */
-            if( (gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV) && ( rfalIsoDep_PCBhasDID(rxPCB) || rfalIsoDep_PCBhasNAD(rxPCB)) )
+            if( (gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV) && ( isoDep_PCBhasDID(rxPCB) || isoDep_PCBhasNAD(rxPCB)) )
             {
                 return ERR_PROTO;
             }
             
             /* If we are expecting DID, check if PCB signals its presence and if device ID match*/
-            if( (gIsoDep.did != RFAL_ISODEP_NO_DID) && ( !rfalIsoDep_PCBhasDID(rxPCB) || (gIsoDep.did != gIsoDep.rxBuf[ ISODEP_DID_POS ])) )
+            if( (gIsoDep.did != RFAL_ISODEP_NO_DID) && ( !isoDep_PCBhasDID(rxPCB) || (gIsoDep.did != gIsoDep.rxBuf[ ISODEP_DID_POS ])) )
             {
                 return ERR_PROTO;
             }
@@ -857,29 +811,18 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
             /*******************************************************************************/
             /* Process S-Block                                                             */
             /*******************************************************************************/
-            if( rfalIsoDep_PCBisSBlock(rxPCB) )
+            if( isoDep_PCBisSBlock(rxPCB) )
             {
                 /* Check if is a Wait Time eXtension */
-                if( rfalIsoDep_PCBisSWTX(rxPCB) )
+                if( isoDep_PCBisSWTX(rxPCB) )
                 {
-                    /* Check if PICC has requested S(WTX) as response to R(NAK)  EMVCo 3.0 10.3.5.5 / Digital 2.0  16.2.6.5 */
-                    if( rfalIsoDep_PCBisRNAK( gIsoDep.lastPCB ) )
-                    {
-                        gIsoDep.cntSWtxNack++;        /* Count S(WTX) upon R(NAK) */
-                        gIsoDep.cntRRetrys = 0;       /* Reset R-Block counter has PICC has responded */
-                    }
-                    else
-                    {
-                        gIsoDep.cntSWtxNack = 0;       /* Reset R(NACK)->S(WTX) counter */
-                    }
-                    
                     /* Rule 3 - respond to S-block: get 1st INF byte S(STW): Power + WTXM */
-                    EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_S_WTX, rfalIsoDep_GetWTXM(gIsoDep.rxBuf[gIsoDep.hdrLen]) ) );                    
+                    EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_S_WTX, isoDep_GetWTXM(gIsoDep.rxBuf[gIsoDep.hdrLen]) ) );                    
                     return ERR_BUSY;
                 }
                 
                 /* Check if is a deselect response */
-                if( rfalIsoDep_PCBisSDeselect(rxPCB) )
+                if( isoDep_PCBisSDeselect(rxPCB) )
                 {
                     if( gIsoDep.state == ISODEP_ST_PCD_WAIT_DSL )
                     {
@@ -897,14 +840,14 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
             /*******************************************************************************/
             /* Process R-Block                                                             */
             /*******************************************************************************/
-            else if( rfalIsoDep_PCBisRBlock(rxPCB) )
+            else if( isoDep_PCBisRBlock(rxPCB) )
             {
-                if( rfalIsoDep_PCBisRACK(rxPCB) )                            /* Check if is a R-ACK */
+                if( isoDep_PCBisRACK(rxPCB) )                            /* Check if is a R-ACK */
                 {
-                    if( rfalIsoDep_GetBN(rxPCB) == gIsoDep.blockNumber )     /* Expected block number  */
+                    if( isoDep_GetBN(rxPCB) == gIsoDep.blockNumber )     /* Expected block number  */
                     {
                         /* Rule B - ACK with expected bn -> Increment block number */
-                        gIsoDep.blockNumber = rfalIsoDep_PCBNextBN( gIsoDep.blockNumber );
+                        gIsoDep.blockNumber = isoDep_PCBNextBN( gIsoDep.blockNumber );
                                                 
                         /* R-ACK only allowed when PCD chaining */
                         if( !gIsoDep.isTxChaining )
@@ -913,21 +856,19 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
                         }
                         
                         /* Rule 7 - Chaining transaction done, continue chaining */
-                        rfalIsoDepClearCounters();
+                        isoDepClearCounters();
                         return ERR_NONE;  /* This block has been transmitted */
                     }
                     else
                     {
-                        /* Rule 6 - R-ACK with wrong block number retransmit                          */
-                        /* Digital 2.0  16.2.5.4 - Retransmit maximum two times                       */
-                        /* EMVCo 3.0 10.3.4.3 -  PCD may re-transmit the last I-Block or report error */
+                        /* Rule 6 - R-ACK with wrong block number retransmit */
                         if( gIsoDep.cntIRetrys++ < gIsoDep.maxRetriesI )
                         {
                             gIsoDep.cntRRetrys = 0;            /* Clear R counter only */
                             gIsoDep.state = ISODEP_ST_PCD_TX;
                             return ERR_BUSY;
                         }
-                        return ERR_TIMEOUT; /* NFC Forum mandates timeout or transmission error depending on previous errors */
+                        return ERR_PROTO;
                     }
                 }
                 else  /* Unexcpected R-Block */
@@ -939,24 +880,24 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
             /*******************************************************************************/
             /* Process I-Block                                                             */
             /*******************************************************************************/
-            else if( rfalIsoDep_PCBisIBlock(rxPCB) )
+            else if( isoDep_PCBisIBlock(rxPCB) )
             {
                 /*******************************************************************************/
                 /* is PICC performing chaining                                                 */
-                if( rfalIsoDep_PCBisChaining(rxPCB) )
+                if( isoDep_PCBisChaining(rxPCB) )
                 {
                     gIsoDep.isRxChaining = true;
                     *outIsChaining       = true;
                     
-                    if( rfalIsoDep_GetBN(rxPCB) == gIsoDep.blockNumber )
+                    if( isoDep_GetBN(rxPCB) == gIsoDep.blockNumber )
                     {
                         /* Rule B - ACK with correct block number -> Increase Block number */
-                        rfalIsoDep_ToggleBN( gIsoDep.blockNumber );
+                        isoDep_ToggleBN( gIsoDep.blockNumber );
                         
-                        rfalIsoDepClearCounters();  /* Clear counters in case R counter is already at max */
+                        isoDepClearCounters();  /* Clear counters in case R counter is already at max */
                         
                         /* Rule 2 - Send ACK */
-                        EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
+                        EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
                         
                         /* Received I-Block with chaining, send current data to DH */
                         
@@ -967,23 +908,23 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
                             ST_MEMMOVE( &gIsoDep.rxBuf[gIsoDep.rxBufInfPos], &gIsoDep.rxBuf[gIsoDep.hdrLen], *outActRxLen );
                         }
                         
-                        rfalIsoDepClearCounters();
+                        isoDepClearCounters();
                         return ERR_AGAIN;       /* Send Again signalling to run again, but some chaining data has arrived */
                     }
                     else
                     {
                         /* Rule 5 - PICC chaining invalid I-Block -> R-ACK */
-                        EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );                        
+                        EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );                        
                     }
                     return ERR_BUSY;
                 }
                 
                 gIsoDep.isRxChaining = false; /* clear PICC chaining flag */                
                 
-                if( rfalIsoDep_GetBN(rxPCB) == gIsoDep.blockNumber )
+                if( isoDep_GetBN(rxPCB) == gIsoDep.blockNumber )
                 {
                     /* Rule B - I-Block with correct block number -> Increase Block number */
-                    rfalIsoDep_ToggleBN( gIsoDep.blockNumber );
+                    isoDep_ToggleBN( gIsoDep.blockNumber );
                     
                     /* I-Block transaction done successfully */
                     
@@ -995,7 +936,7 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
                     }
                     
                     gIsoDep.state = ISODEP_ST_IDLE;
-                    rfalIsoDepClearCounters();
+                    isoDepClearCounters();
                     return ERR_NONE;
                 }
                 else
@@ -1007,7 +948,7 @@ static ReturnCode rfalIsoDepDataExchangePCD( uint16_t *outActRxLen, bool *outIsC
                     }
 
                     /* Rule 4 - Invalid Block -> R-NAK */
-                    EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_R_NAK, RFAL_ISODEP_NO_PARAM ) );
+                    EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_R_NAK, RFAL_ISODEP_NO_PARAM ) );
                     return ERR_BUSY;
                 }
             }
@@ -1034,13 +975,20 @@ ReturnCode rfalIsoDepDeselect( void )
     bool       dummyB;
     
     /*******************************************************************************/
-    /* Using local static vars and static config to cope with a Deselect after     *
-     * RATS\ATTRIB without any I-Block exchanged                                   */
-    gIsoDep.rxLen       = &gIsoDep.ctrlRxLen;
-    gIsoDep.rxBuf       = gIsoDep.ctrlBuf;
-    gIsoDep.rxBufLen    = ISODEP_CONTROLMSG_BUF_LEN - (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN);
-    gIsoDep.rxBufInfPos = (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN);
-    gIsoDep.txBufInfPos = (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN);
+    /* Check if  rx parameters have been set before, otherwise use global variable *
+     * To cope with a Deselect after RATS\ATTRIB without any I-Block exchanged     */
+    if( (gIsoDep.rxLen == NULL) || (gIsoDep.rxBuf == NULL) )
+    {
+        /* Using local vars would be safe as rfalIsoDepInitialize will clear the   *
+         * reference to local vars before exiting (no EXIT_ON_ERR),                *
+         * but MISRA 18.6 3217 would be still be flagged. Using static variables   */
+        gIsoDep.rxLen       = &gIsoDep.ctrlRxLen;
+        gIsoDep.rxBuf       = gIsoDep.ctrlRxBuf;
+        
+        gIsoDep.rxBufLen    = ISODEP_CONTROLMSG_BUF_LEN;
+        gIsoDep.rxBufInfPos = (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN);
+        gIsoDep.txBufInfPos = (RFAL_ISODEP_PCB_LEN + RFAL_ISODEP_DID_LEN);
+    }
     
     
     /*******************************************************************************/
@@ -1049,9 +997,9 @@ ReturnCode rfalIsoDepDeselect( void )
     cntRerun = ISODEP_MAX_RERUNS;
     
     /* Send DSL request and run protocol until get a response, error or "timeout" */    
-    EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM ));
+    EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM ));
     do{
-        ret = rfalIsoDepDataExchangePCD( gIsoDep.rxLen, &dummyB );
+        ret = isoDepDataExchangePCD( gIsoDep.rxLen, &dummyB );
         rfalWorker();
     }
     while( ((cntRerun--) != 0U) && (ret == ERR_BUSY) );
@@ -1153,11 +1101,11 @@ bool rfalIsoDepIsAttrib( const uint8_t *buf, uint8_t bufLen )
 
 
 /*******************************************************************************/
-ReturnCode rfalIsoDepListenStartActivation( rfalIsoDepAtsParam *atsParam, const rfalIsoDepAttribResParam *attribResParam, const uint8_t *buf, uint16_t bufLen, rfalIsoDepListenActvParam actParam)
+ReturnCode rfalIsoDepListenStartActivation( rfalIsoDepAtsParam *atsParam, const rfalIsoDepAttribResParam *attribResParam, uint8_t *buf, uint16_t bufLen, rfalIsoDepListenActvParam actParam)
 {
     uint8_t *txBuf;
     uint8_t bufIt;
-    const uint8_t *buffer = buf;
+    uint8_t *buffer = buf;
     
     /*******************************************************************************/
     bufIt        = 0;
@@ -1343,7 +1291,7 @@ ReturnCode rfalIsoDepListenGetActivationStatus( void )
         /*******************************************************************************/
         default:               /*  PRQA S 2003 # MISRA 16.3 - Intentional fall through */
             /* ReEnable the receiver and wait for another frame */
-            rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
+            isoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
             
             return ERR_BUSY;
     }
@@ -1370,7 +1318,7 @@ ReturnCode rfalIsoDepListenGetActivationStatus( void )
                 (( ((uint8_t*)gIsoDep.actvParam.rxBuf)[RFAL_ISODEP_PPS_PPS0_POS] & RFAL_ISODEP_PPS0_VALID_MASK) != RFAL_ISODEP_PPS0_PPS1_NOT_PRESENT)   )
             {
                 /* Invalid DID on PPS request or Invalid PPS0, reEnable the receiver and wait another frame */
-                rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
+                isoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
                 
                 return ERR_BUSY;
             }
@@ -1404,7 +1352,7 @@ ReturnCode rfalIsoDepListenGetActivationStatus( void )
             /* Exchange the bit rates if requested */
             if( dri != RFAL_BR_KEEP )
             {
-                rfalSetBitRate( dsi, dri );
+                rfalSetBitRate( dsi, dri );                 /*  PRQA S  2880 # MISRA 2.1 - Unreachable code due to configuration option being set/unset above (RFAL_SUPPORT_BR_CE_A_xxx) */
                 
                 gIsoDep.txBR = dsi;  /* DSI codes the divisor from PICC to PCD */
                 gIsoDep.rxBR = dri;  /* DRI codes the divisor from PCD to PICC */
@@ -1449,8 +1397,8 @@ uint16_t rfalIsoDepGetMaxInfLen( void )
     /* Check whether all parameters are valid, otherwise return minimum default value */
     if( (gIsoDep.fsx < (uint16_t)RFAL_ISODEP_FSX_16) || (gIsoDep.fsx > (uint16_t)RFAL_ISODEP_FSX_4096) || (gIsoDep.hdrLen > ISODEP_HDR_MAX_LEN) )
     {
-        uint16_t aux = (uint16_t)RFAL_ISODEP_FSX_16;  /* MISRA 10.1 */
-        return (aux - RFAL_ISODEP_PCB_LEN - ISODEP_CRC_LEN);
+        uint16_t isodepFsx16 = (uint16_t)RFAL_ISODEP_FSX_16;  /* MISRA 10.1 */
+        return (isodepFsx16 - RFAL_ISODEP_PCB_LEN - ISODEP_CRC_LEN);
     }
     
     return (gIsoDep.fsx - gIsoDep.hdrLen - ISODEP_CRC_LEN);
@@ -1483,7 +1431,7 @@ ReturnCode rfalIsoDepStartTransceive( rfalIsoDepTxRxParam param )
     
     /* Clear inner control params for next dataExchange */
     gIsoDep.isRxChaining  = false;
-    rfalIsoDepClearCounters();
+    isoDepClearCounters();
     
     if(gIsoDep.role == ISODEP_ROLE_PICC)
     {
@@ -1518,7 +1466,7 @@ ReturnCode rfalIsoDepGetTransceiveStatus( void )
     if( gIsoDep.role == ISODEP_ROLE_PICC)
     {
 #if RFAL_FEATURE_ISO_DEP_LISTEN
-        return rfalIsoDepDataExchangePICC();
+        return isoDepDataExchangePICC();
 #else
         return ERR_NOTSUPP;
 #endif /* RFAL_FEATURE_ISO_DEP_LISTEN */
@@ -1526,7 +1474,7 @@ ReturnCode rfalIsoDepGetTransceiveStatus( void )
     else
     {
 #if RFAL_FEATURE_ISO_DEP_POLL
-        return rfalIsoDepDataExchangePCD( gIsoDep.rxLen, gIsoDep.rxChaining );
+        return isoDepDataExchangePCD( gIsoDep.rxLen, gIsoDep.rxChaining );
 #else
         return ERR_NOTSUPP;
 #endif /* RFAL_FEATURE_ISO_DEP_POLL */
@@ -1537,7 +1485,7 @@ ReturnCode rfalIsoDepGetTransceiveStatus( void )
 #if RFAL_FEATURE_ISO_DEP_LISTEN
 
 /*******************************************************************************/
-static ReturnCode rfalIsoDepDataExchangePICC( void )
+static ReturnCode isoDepDataExchangePICC( void )
 {
     uint8_t    rxPCB;
     ReturnCode ret;
@@ -1552,7 +1500,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
         /*******************************************************************************/
         case ISODEP_ST_PICC_TX:
         
-            ret = rfalIsoDepTx( rfalIsoDep_PCBIBlock( gIsoDep.blockNumber ), gIsoDep.txBuf, &gIsoDep.txBuf[gIsoDep.txBufInfPos], gIsoDep.txBufLen, RFAL_FWT_NONE );
+            ret = isoDepTx( isoDep_PCBIBlock( gIsoDep.blockNumber ), gIsoDep.txBuf, &gIsoDep.txBuf[gIsoDep.txBufInfPos], gIsoDep.txBufLen, RFAL_FWT_NONE );
             
             /* Clear pending Tx flag */
             gIsoDep.isTxPending = false;
@@ -1584,7 +1532,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
                 case ERR_FRAMING:
                     
                     /* Digital 1.1 - 15.2.6.2  The CE SHALL NOT attempt error recovery and remains in Rx mode upon Transmission or a Protocol Error */                                        
-                    rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
+                    isoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
                     
                     return ERR_BUSY;
                     
@@ -1610,7 +1558,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
         /*******************************************************************************/
         case ISODEP_ST_PICC_SWTX:
             
-            if( !rfalIsoDepTimerisExpired( gIsoDep.WTXTimer ) )       /* Do nothing until WTX timer has expired */
+            if( !isoDepTimerisExpired( gIsoDep.WTXTimer ) )       /* Do nothing until WTX timer has expired */
             {
                return ERR_BUSY;
             }
@@ -1619,21 +1567,10 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
             gIsoDep.isWait4WTX = true;
             
             /* Digital 1.1  15.2.2.9 - Calculate the WTXM such that FWTtemp <= FWTmax */
-            gIsoDep.lastWTXM = (uint8_t)rfalIsoDep_WTXMListenerMax( gIsoDep.fwt );
-            EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_S_WTX, gIsoDep.lastWTXM ) );
+            gIsoDep.lastWTXM = (uint8_t)isoDep_WTXMListenerMax( gIsoDep.fwt );
+            EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_S_WTX, gIsoDep.lastWTXM ) );
             
             gIsoDep.state = ISODEP_ST_PICC_RX;                    /* Go back to Rx to process WTX ack        */
-            return ERR_BUSY;
-            
-            
-        /*******************************************************************************/
-        case ISODEP_ST_PICC_SDSL:
-            
-            if( !rfalIsTransceiveInTx() )       /* Wait until DSL response has been sent */
-            {
-                rfalIsoDepInitialize();         /* Session finished reInit vars, go back to ISODEP_ST_IDLE */
-                return ERR_SLEEP_REQ;           /* Notify Deselect request      */
-            }
             return ERR_BUSY;
 
             
@@ -1643,7 +1580,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
     }
     
     /* ISO 14443-4 7.5.6.2 CE SHALL NOT attempt error recovery -> clear counters */
-    rfalIsoDepClearCounters();
+    isoDepClearCounters();
     
     /*******************************************************************************/
     /* No error, process incoming msg                                              */
@@ -1659,13 +1596,13 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
         
     /* ReCalculate Header Length */
     gIsoDep.hdrLen   = RFAL_ISODEP_PCB_LEN;
-    gIsoDep.hdrLen  += (uint8_t)( (rfalIsoDep_PCBhasDID(rxPCB)) ? RFAL_ISODEP_DID_LEN : 0U );
-    gIsoDep.hdrLen  += (uint8_t)( (rfalIsoDep_PCBhasNAD(rxPCB)) ? RFAL_ISODEP_NAD_LEN : 0U );
+    gIsoDep.hdrLen  += (uint8_t)( (isoDep_PCBhasDID(rxPCB)) ? RFAL_ISODEP_DID_LEN : 0U );
+    gIsoDep.hdrLen  += (uint8_t)( (isoDep_PCBhasNAD(rxPCB)) ? RFAL_ISODEP_NAD_LEN : 0U );
         
     /* Store whether last PCD block had DID. for PICC special handling of DID = 0 */
     if( gIsoDep.did == RFAL_ISODEP_DID_00 )
     {
-        gIsoDep.lastDID00 = ( (rfalIsoDep_PCBhasDID(rxPCB)) ? true : false );
+        gIsoDep.lastDID00 = ( (isoDep_PCBhasDID(rxPCB)) ? true : false );
     }
     
     /*******************************************************************************/
@@ -1673,36 +1610,36 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
      * if the rcvd msg exceeds our announced frame size (FSD)                      */
     if( ((*gIsoDep.rxLen) < gIsoDep.hdrLen) || ((*gIsoDep.rxLen) > (gIsoDep.ourFsx - ISODEP_CRC_LEN)) )
     {
-        rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
+        isoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
         return ERR_BUSY;  /* ERR_PROTO Ignore this protocol request */
     }
     
     /* If we are expecting DID, check if PCB signals its presence and if device ID match OR
      * If our DID=0 and DID is sent but with an incorrect value                              */
-    if( ((gIsoDep.did != RFAL_ISODEP_DID_00) && ( !rfalIsoDep_PCBhasDID(rxPCB) || (gIsoDep.did != gIsoDep.rxBuf[ ISODEP_DID_POS ])))   || 
-        ((gIsoDep.did == RFAL_ISODEP_DID_00) &&    rfalIsoDep_PCBhasDID(rxPCB) && (RFAL_ISODEP_DID_00 != gIsoDep.rxBuf[ ISODEP_DID_POS ]) )     )
+    if( ((gIsoDep.did != RFAL_ISODEP_DID_00) && ( !isoDep_PCBhasDID(rxPCB) || (gIsoDep.did != gIsoDep.rxBuf[ ISODEP_DID_POS ])))   || 
+        ((gIsoDep.did == RFAL_ISODEP_DID_00) &&    isoDep_PCBhasDID(rxPCB) && (RFAL_ISODEP_DID_00 != gIsoDep.rxBuf[ ISODEP_DID_POS ]) )     )
     {
-        rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
+        isoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
         return ERR_BUSY;  /* Ignore a wrong DID request */
     }
     
     /* If we aren't expecting NAD and it's received */
-    if( (gIsoDep.nad == RFAL_ISODEP_NO_NAD) && rfalIsoDep_PCBhasNAD(rxPCB) )
+    if( (gIsoDep.nad == RFAL_ISODEP_NO_NAD) && isoDep_PCBhasNAD(rxPCB) )
     {
-        rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
+        isoDepReEnableRx( (uint8_t*)gIsoDep.actvParam.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.actvParam.rxLen );
         return ERR_BUSY;  /* Ignore a unexpected NAD request */
     }
         
     /*******************************************************************************/
     /* Process S-Block                                                             */
     /*******************************************************************************/
-    if( rfalIsoDep_PCBisSBlock(rxPCB) )
+    if( isoDep_PCBisSBlock(rxPCB) )
     {
        /* Check if is a Wait Time eXtension */
-       if( rfalIsoDep_PCBisSWTX(rxPCB) )
+       if( isoDep_PCBisSWTX(rxPCB) )
        {
             /* Check if we're expecting a S-WTX */
-            if( rfalIsoDep_PCBisWTX( gIsoDep.lastPCB ) )
+            if( isoDep_PCBisWTX( gIsoDep.lastPCB ) )
             {
                 /* Digital 1.1  15.2.2.11 S(WTX) Ack with different WTXM -> Protocol Error  *
                  *              Power level indication also should be set to 0              */
@@ -1720,7 +1657,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
                     }
                     
                     /* Set WTX timer */
-                    rfalIsoDepTimerStart( gIsoDep.WTXTimer, rfalIsoDep_WTXAdjust( (gIsoDep.lastWTXM * rfalConv1fcToMs( gIsoDep.fwt )) ) );
+                    isoDepTimerStart( gIsoDep.WTXTimer, isoDep_WTXAdjust( (gIsoDep.lastWTXM * rfalConv1fcToMs( gIsoDep.fwt )) ) );
                     
                     gIsoDep.state = ISODEP_ST_PICC_SWTX;
                     return ERR_BUSY;
@@ -1729,14 +1666,13 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
             /* Unexpected/Incorrect S-WTX, fall into reRenable */
        }
        
-       /* Check if is a Deselect request */
-       if( rfalIsoDep_PCBisSDeselect(rxPCB) && ((*gIsoDep.rxLen - gIsoDep.hdrLen) == ISODEP_SDSL_INF_LEN) )
+       /* Check if is a deselect request */
+       if( isoDep_PCBisSDeselect(rxPCB) && ((*gIsoDep.rxLen - gIsoDep.hdrLen) == ISODEP_SDSL_INF_LEN) )
        {
-           EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM ) );
+           EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_S_DSL, RFAL_ISODEP_NO_PARAM ) );
            
-           /* S-DSL transmission ongoing, wait until complete */
-           gIsoDep.state = ISODEP_ST_PICC_SDSL;
-           return ERR_BUSY;
+           rfalIsoDepInitialize();         /* Session finished reInit vars */
+           return ERR_SLEEP_REQ;
        }
        
        /* Unexpected S-Block, fall into reRenable */
@@ -1745,16 +1681,16 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
     /*******************************************************************************/
     /* Process R-Block                                                             */
     /*******************************************************************************/
-    else if( rfalIsoDep_PCBisRBlock(rxPCB) && ((*gIsoDep.rxLen - gIsoDep.hdrLen) == ISODEP_RBLOCK_INF_LEN))
+    else if( isoDep_PCBisRBlock(rxPCB) && ((*gIsoDep.rxLen - gIsoDep.hdrLen) == ISODEP_RBLOCK_INF_LEN))
     {
-        if( rfalIsoDep_PCBisRACK(rxPCB) )                             /* Check if is a R-ACK */
+        if( isoDep_PCBisRACK(rxPCB) )                             /* Check if is a R-ACK */
         {
-            if( rfalIsoDep_GetBN(rxPCB) == gIsoDep.blockNumber )      /* Check block number  */
+            if( isoDep_GetBN(rxPCB) == gIsoDep.blockNumber )      /* Check block number  */
             {
                 /* Rule 11 - R(ACK) with current bn -> re-transmit */
-                if( !rfalIsoDep_PCBisIBlock(gIsoDep.lastPCB) )
+                if( !isoDep_PCBisIBlock(gIsoDep.lastPCB) )
                 {
-                    rfalIsoDepReSendControlMsg();
+                    isoDepReSendControlMsg();
                 }
                 else
                 {
@@ -1768,31 +1704,31 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
                 if( !gIsoDep.isTxChaining )
                 {
                     /* Rule 13 violation R(ACK) without performing chaining */
-                    rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
+                    isoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
                     return ERR_BUSY;
                 }
                 
                 /* Rule E -  R(ACK) with not current bn -> toogle bn */
-                rfalIsoDep_ToggleBN( gIsoDep.blockNumber );
+                isoDep_ToggleBN( gIsoDep.blockNumber );
 
                 /* This block has been transmitted and acknowledged, perform WTX until next data is provided  */
 
                 /* Rule 9 - PICC is allowed to send an S(WTX) instead of an I-block or an R(ACK) */
-                rfalIsoDepTimerStart( gIsoDep.WTXTimer, rfalIsoDep_WTXAdjust( rfalConv1fcToMs( gIsoDep.fwt )) );
+                isoDepTimerStart( gIsoDep.WTXTimer, isoDep_WTXAdjust( rfalConv1fcToMs( gIsoDep.fwt )) );
                 gIsoDep.state = ISODEP_ST_PICC_SWTX;
                 
                 /* Rule 13 - R(ACK) with not current bn -> continue chaining */
                 return ERR_NONE;                                 /* This block has been transmitted */
             }
         }
-        else if( rfalIsoDep_PCBisRNAK(rxPCB) )                       /* Check if is a R-NACK */
+        else if( isoDep_PCBisRNAK(rxPCB) )                       /* Check if is a R-NACK */
         {
-            if( rfalIsoDep_GetBN(rxPCB) == gIsoDep.blockNumber )     /* Check block number  */
+            if( isoDep_GetBN(rxPCB) == gIsoDep.blockNumber )     /* Check block number  */
             {
                 /* Rule 11 - R(NAK) with current bn -> re-transmit last x-Block */
-                if( !rfalIsoDep_PCBisIBlock(gIsoDep.lastPCB) )
+                if( !isoDep_PCBisIBlock(gIsoDep.lastPCB) )
                 {
-                    rfalIsoDepReSendControlMsg();
+                    isoDepReSendControlMsg();
                 }
                 else
                 {
@@ -1804,7 +1740,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
             else
             {
                 /* Rule 12 - R(NAK) with not current bn -> R(ACK) */
-                EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
+                EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
                 
                 return ERR_BUSY;
             }
@@ -1820,32 +1756,32 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
     /*******************************************************************************/
     /* Process I-Block                                                             */
     /*******************************************************************************/
-    else if( rfalIsoDep_PCBisIBlock(rxPCB) )
+    else if( isoDep_PCBisIBlock(rxPCB) )
     {
         /* Rule D - When an I-block is received, the PICC shall toggle its block number before sending a block */
-        rfalIsoDep_ToggleBN( gIsoDep.blockNumber );
+        isoDep_ToggleBN( gIsoDep.blockNumber );
         
         /*******************************************************************************/
         /* Check if the block number is the one expected                               */
         /* Check if PCD sent an I-Block instead ACK/NACK when we are chaining          */
-        if( (rfalIsoDep_GetBN(rxPCB) != gIsoDep.blockNumber) || (gIsoDep.isTxChaining) )
+        if( (isoDep_GetBN(rxPCB) != gIsoDep.blockNumber) || (gIsoDep.isTxChaining) )
         {
             /* Remain in the same Block Number */
-            rfalIsoDep_ToggleBN( gIsoDep.blockNumber );
+            isoDep_ToggleBN( gIsoDep.blockNumber );
             
             /* ISO 14443-4 7.5.6.2 & Digital 1.1 - 15.2.6.2  The CE SHALL NOT attempt error recovery and remains in Rx mode upon Transmission or a Protocol Error */                                  
-            rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
+            isoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
             return ERR_BUSY;
         }
         
         /*******************************************************************************/
         /* is PCD performing chaining  ?                                               */
-        if( rfalIsoDep_PCBisChaining(rxPCB) )
+        if( isoDep_PCBisChaining(rxPCB) )
         {
             gIsoDep.isRxChaining  = true;
             *gIsoDep.rxChaining   = true; /* Output Parameter*/            
                         
-            EXIT_ON_ERR( ret, rfalIsoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
+            EXIT_ON_ERR( ret, isoDepHandleControlMsg( ISODEP_R_ACK, RFAL_ISODEP_NO_PARAM ) );
                             
             /* Received I-Block with chaining, send current data to DH */
             
@@ -1874,7 +1810,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
         
         /*******************************************************************************/
         /* Reception done, send data back and start WTX timer                          */
-        rfalIsoDepTimerStart( gIsoDep.WTXTimer, rfalIsoDep_WTXAdjust( rfalConv1fcToMs( gIsoDep.fwt )) );
+        isoDepTimerStart( gIsoDep.WTXTimer, isoDep_WTXAdjust( rfalConv1fcToMs( gIsoDep.fwt )) );
         
         gIsoDep.state = ISODEP_ST_PICC_SWTX;
         return ERR_NONE;
@@ -1886,7 +1822,7 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
     
     /* Unexpected/Unknown Block */
     /* ISO 14443-4 7.5.6.2 & Digital 1.1 - 15.2.6.2  The CE SHALL NOT attempt error recovery and remains in Rx mode upon Transmission or a Protocol Error */
-    rfalIsoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
+    isoDepReEnableRx( (uint8_t*)gIsoDep.rxBuf, sizeof( rfalIsoDepBufFormat ), gIsoDep.rxLen );
     
     return ERR_BUSY;
 }
@@ -1898,110 +1834,42 @@ static ReturnCode rfalIsoDepDataExchangePICC( void )
 #if RFAL_FEATURE_NFCA
 
 /*******************************************************************************/
-static ReturnCode rfalIsoDepStartRATS( rfalIsoDepFSxI FSDI, uint8_t DID, rfalIsoDepAts *ats, uint8_t *atsLen )
+ReturnCode rfalIsoDepRATS( rfalIsoDepFSxI FSDI, uint8_t DID, rfalIsoDepAts *ats , uint8_t *atsLen)
 {
-    rfalTransceiveContext ctx;
+    uint16_t       rcvLen;
+    ReturnCode     ret;
+    rfalIsoDepRats ratsReq;
     
-    if( ats == NULL)
+    if( ats == NULL )
     {
         return ERR_PARAM;
     }
     
-    gIsoDep.rxBuf   = (uint8_t*) ats;
-    gIsoDep.rxLen8  = atsLen;
-    gIsoDep.did     = DID;
-    
     /*******************************************************************************/
     /* Compose RATS */
-    gIsoDep.actv.ratsReq.CMD   = RFAL_ISODEP_CMD_RATS;
-    gIsoDep.actv.ratsReq.PARAM = (((uint8_t)FSDI << RFAL_ISODEP_RATS_PARAM_FSDI_SHIFT) & RFAL_ISODEP_RATS_PARAM_FSDI_MASK) | (DID & RFAL_ISODEP_RATS_PARAM_DID_MASK);
+    ratsReq.CMD   = RFAL_ISODEP_CMD_RATS;
+    ratsReq.PARAM = (((uint8_t)FSDI << RFAL_ISODEP_RATS_PARAM_FSDI_SHIFT) & RFAL_ISODEP_RATS_PARAM_FSDI_MASK) | (DID & RFAL_ISODEP_RATS_PARAM_DID_MASK);
     
-    rfalCreateByteFlagsTxRxContext( ctx, (uint8_t*)&gIsoDep.actv.ratsReq, sizeof(rfalIsoDepRats), (uint8_t*)ats, sizeof(rfalIsoDepAts), &gIsoDep.rxBufLen, RFAL_TXRX_FLAGS_DEFAULT, RFAL_ISODEP_T4T_FWT_ACTIVATION );
-    return rfalStartTransceive( &ctx );
-}
-
-
-/*******************************************************************************/
-static ReturnCode rfalIsoDepGetRATSStatus( void )
-{
-    ReturnCode ret;
+    ret = rfalTransceiveBlockingTxRx( (uint8_t*)&ratsReq, sizeof(rfalIsoDepRats), (uint8_t*)ats, sizeof(rfalIsoDepAts), &rcvLen, RFAL_TXRX_FLAGS_DEFAULT, RFAL_ISODEP_T4T_FWT_ACTIVATION );
     
-    ret = rfalGetTransceiveStatus();
     if( ret == ERR_NONE )
     {
-        gIsoDep.rxBufLen = rfalConvBitsToBytes(gIsoDep.rxBufLen);
-        
         /* Check for valid ATS length  Digital 1.1  13.6.2.1 & 13.6.2.3 */
-        if( (gIsoDep.rxBufLen < RFAL_ISODEP_ATS_MIN_LEN) || (gIsoDep.rxBufLen > RFAL_ISODEP_ATS_MAX_LEN) || ( gIsoDep.rxBuf[RFAL_ISODEP_ATS_TL_POS] != gIsoDep.rxBufLen) )
+        if( (rcvLen < RFAL_ISODEP_ATS_MIN_LEN) || (rcvLen > RFAL_ISODEP_ATS_MAX_LEN) || (ats->TL != rcvLen) )
         {
             return ERR_PROTO;
         }
         
         /* Assign our FSx, in case the a Deselect is send without Transceive */
-        gIsoDep.ourFsx = rfalIsoDepFSxI2FSx( (uint8_t) (gIsoDep.actv.ratsReq.PARAM >> RFAL_ISODEP_RATS_PARAM_FSDI_SHIFT) );
-        
-        /* Check and assign if ATS length was requested (length also available on TL) */
-        if( gIsoDep.rxLen8 != NULL )
-        {
-            *gIsoDep.rxLen8 = (uint8_t)gIsoDep.rxBufLen;
-        }
+        gIsoDep.ourFsx = rfalIsoDepFSxI2FSx( (uint8_t)FSDI );
     }
     
-    return ret;
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalIsoDepRATS( rfalIsoDepFSxI FSDI, uint8_t DID, rfalIsoDepAts *ats , uint8_t *atsLen)
-{
-    ReturnCode ret;
-    
-    EXIT_ON_ERR( ret, rfalIsoDepStartRATS(FSDI, DID, ats, atsLen) );
-    rfalRunBlocking( ret, rfalIsoDepGetRATSStatus() );
-    
-    return ret;
-}
-
-
-/*******************************************************************************/
-static ReturnCode rfalIsoDepStartPPS( uint8_t DID, rfalBitRate DSI, rfalBitRate DRI, rfalIsoDepPpsRes *ppsRes )
-{
-    rfalTransceiveContext ctx;
-    
-    if( (ppsRes == NULL) || (DSI > RFAL_BR_848) || (DRI > RFAL_BR_848) || (DID > RFAL_ISODEP_DID_MAX) )
+    /* Check and assign if ATS length was requested (length also available on TL) */
+    if( atsLen != NULL )
     {
-        return ERR_PARAM;
+        *atsLen = (uint8_t)rcvLen;
     }
-        
-    gIsoDep.rxBuf   = (uint8_t*) ppsRes;
     
-    /*******************************************************************************/
-    /* Compose PPS Request */
-    gIsoDep.actv.ppsReq.PPSS = (RFAL_ISODEP_PPS_SB | (DID & RFAL_ISODEP_PPS_SB_DID_MASK));
-    gIsoDep.actv.ppsReq.PPS0 = RFAL_ISODEP_PPS_PPS0_PPS1_PRESENT;
-    gIsoDep.actv.ppsReq.PPS1 = (RFAL_ISODEP_PPS_PPS1 | ((((uint8_t)DSI<<RFAL_ISODEP_PPS_PPS1_DSI_SHIFT) | (uint8_t)DRI) & RFAL_ISODEP_PPS_PPS1_DXI_MASK)); 
-    
-    rfalCreateByteFlagsTxRxContext( ctx, (uint8_t*)&gIsoDep.actv.ppsReq, sizeof(rfalIsoDepPpsReq), (uint8_t*)ppsRes, sizeof(rfalIsoDepPpsRes), &gIsoDep.rxBufLen, RFAL_TXRX_FLAGS_DEFAULT, RFAL_ISODEP_T4T_FWT_ACTIVATION );
-    return rfalStartTransceive( &ctx );
-}
-
-
-/*******************************************************************************/
-static ReturnCode rfalIsoDepGetPPSSTatus( void )
-{
-    ReturnCode ret;
-    
-    ret = rfalGetTransceiveStatus();
-    if( ret == ERR_NONE )
-    {
-        gIsoDep.rxBufLen = rfalConvBitsToBytes(gIsoDep.rxBufLen);
-        
-        /* Check for valid PPS Response   */
-        if( (gIsoDep.rxBufLen != RFAL_ISODEP_PPS_RES_LEN) || (*gIsoDep.rxBuf != gIsoDep.actv.ppsReq.PPSS) ) 
-        {
-            return ERR_PROTO;
-        }
-    }
     return ret;
 }
 
@@ -2009,11 +1877,31 @@ static ReturnCode rfalIsoDepGetPPSSTatus( void )
 /*******************************************************************************/
 ReturnCode rfalIsoDepPPS( uint8_t DID, rfalBitRate DSI, rfalBitRate DRI, rfalIsoDepPpsRes *ppsRes )
 {
-    ReturnCode ret;
+    uint16_t         rcvLen;
+    ReturnCode       ret;
+    rfalIsoDepPpsReq ppsReq;
     
-    EXIT_ON_ERR( ret, rfalIsoDepStartPPS(DID, DSI, DRI, ppsRes) );
-    rfalRunBlocking( ret, rfalIsoDepGetPPSSTatus() );
+    if( (ppsRes == NULL) || (DSI > RFAL_BR_848) || (DRI > RFAL_BR_848) || (DID > RFAL_ISODEP_DID_MAX) )
+    {
+        return ERR_PARAM;
+    }
     
+    /*******************************************************************************/
+    /* Compose PPS Request */
+    ppsReq.PPSS = (RFAL_ISODEP_PPS_SB | (DID & RFAL_ISODEP_PPS_SB_DID_MASK));
+    ppsReq.PPS0 = RFAL_ISODEP_PPS_PPS0_PPS1_PRESENT;
+    ppsReq.PPS1 = (RFAL_ISODEP_PPS_PPS1 | ((((uint8_t)DSI<<RFAL_ISODEP_PPS_PPS1_DSI_SHIFT) | (uint8_t)DRI) & RFAL_ISODEP_PPS_PPS1_DXI_MASK)); 
+    
+    ret = rfalTransceiveBlockingTxRx( (uint8_t*)&ppsReq, sizeof(rfalIsoDepPpsReq), (uint8_t*)ppsRes, sizeof(rfalIsoDepPpsRes), &rcvLen, RFAL_TXRX_FLAGS_DEFAULT, RFAL_ISODEP_T4T_FWT_ACTIVATION );
+    
+    if( ret == ERR_NONE )
+    {
+        /* Check for valid PPS Response   */
+        if( (rcvLen != RFAL_ISODEP_PPS_RES_LEN) || (ppsRes->PPSS != ppsReq.PPSS) )
+        {
+            return ERR_PROTO;
+        }
+    }
     return ret;
 }
 
@@ -2022,76 +1910,48 @@ ReturnCode rfalIsoDepPPS( uint8_t DID, rfalBitRate DSI, rfalBitRate DRI, rfalIso
 
 #if RFAL_FEATURE_NFCB
 
-static ReturnCode rfalIsoDepStartATTRIB( const uint8_t* nfcid0, uint8_t PARAM1, rfalBitRate DSI, rfalBitRate DRI, rfalIsoDepFSxI FSDI, uint8_t PARAM3, uint8_t DID, const uint8_t* HLInfo, uint8_t HLInfoLen, uint32_t fwt, rfalIsoDepAttribRes *attribRes, uint8_t *attribResLen )
+/*******************************************************************************/
+ReturnCode rfalIsoDepATTRIB( const uint8_t* nfcid0, uint8_t PARAM1, rfalBitRate DSI, rfalBitRate DRI, rfalIsoDepFSxI FSDI, uint8_t PARAM3, uint8_t DID, const uint8_t* HLInfo, uint8_t HLInfoLen, uint32_t fwt, rfalIsoDepAttribRes *attribRes, uint8_t *attribResLen )
 {
-    rfalTransceiveContext ctx;
+    uint16_t            rcvLen;
+    ReturnCode          ret;
+    rfalIsoDepAttribCmd attribCmd;
+    
     
     if( (attribRes == NULL) || (attribResLen == NULL) || (DSI > RFAL_BR_848) || (DRI > RFAL_BR_848) || (DID > RFAL_ISODEP_DID_MAX) )
     {
         return ERR_NONE;
     }
     
-    gIsoDep.rxBuf   = (uint8_t*)  attribRes;
-    gIsoDep.rxLen8  = attribResLen;
-    gIsoDep.did     = DID;
-    
     /*******************************************************************************/
     /* Compose ATTRIB command */
-    gIsoDep.actv.attribReq.cmd          = RFAL_ISODEP_CMD_ATTRIB;
-    gIsoDep.actv.attribReq.Param.PARAM1 = PARAM1;
-    gIsoDep.actv.attribReq.Param.PARAM2 = ( ((((uint8_t)DSI<<RFAL_ISODEP_ATTRIB_PARAM2_DSI_SHIFT) | ((uint8_t)DRI<<RFAL_ISODEP_ATTRIB_PARAM2_DRI_SHIFT)) & RFAL_ISODEP_ATTRIB_PARAM2_DXI_MASK) | ((uint8_t)FSDI & RFAL_ISODEP_ATTRIB_PARAM2_FSDI_MASK) );
-    gIsoDep.actv.attribReq.Param.PARAM3 = PARAM3;
-    gIsoDep.actv.attribReq.Param.PARAM4 = (DID & RFAL_ISODEP_ATTRIB_PARAM4_DID_MASK);
-    ST_MEMCPY(gIsoDep.actv.attribReq.nfcid0, nfcid0, RFAL_NFCB_NFCID0_LEN);
+    attribCmd.cmd          = RFAL_ISODEP_CMD_ATTRIB;
+    attribCmd.Param.PARAM1 = PARAM1;
+    attribCmd.Param.PARAM2 = ( ((((uint8_t)DSI<<RFAL_ISODEP_ATTRIB_PARAM2_DSI_SHIFT) | ((uint8_t)DRI<<RFAL_ISODEP_ATTRIB_PARAM2_DRI_SHIFT)) & RFAL_ISODEP_ATTRIB_PARAM2_DXI_MASK) | ((uint8_t)FSDI & RFAL_ISODEP_ATTRIB_PARAM2_FSDI_MASK) );
+    attribCmd.Param.PARAM3 = PARAM3;
+    attribCmd.Param.PARAM4 = (DID & RFAL_ISODEP_ATTRIB_PARAM4_DID_MASK);
+    ST_MEMCPY(attribCmd.nfcid0, nfcid0, RFAL_NFCB_NFCID0_LEN);
     
-     /* Append the Higher layer Info if provided */
+    /* Append the Higher layer Info if provided */
     if( (HLInfo != NULL) && (HLInfoLen > 0U) )
     {
-        ST_MEMCPY(gIsoDep.actv.attribReq.HLInfo, HLInfo, MIN(HLInfoLen, RFAL_ISODEP_ATTRIB_HLINFO_LEN) );
+        ST_MEMCPY(attribCmd.HLInfo, HLInfo, MIN(HLInfoLen, RFAL_ISODEP_ATTRIB_HLINFO_LEN) );
     }
     
-    rfalCreateByteFlagsTxRxContext( ctx, (uint8_t*)&gIsoDep.actv.attribReq, (uint16_t)(RFAL_ISODEP_ATTRIB_HDR_LEN + MIN((uint16_t)HLInfoLen, RFAL_ISODEP_ATTRIB_HLINFO_LEN)), (uint8_t*)gIsoDep.rxBuf, sizeof(rfalIsoDepAttribRes), &gIsoDep.rxBufLen, RFAL_TXRX_FLAGS_DEFAULT, fwt );
-    return rfalStartTransceive( &ctx );
-}
-
-
-/*******************************************************************************/
-static ReturnCode rfalIsoDepGetATTRIBStatus( void )
-{
-    ReturnCode ret;
+    ret = rfalTransceiveBlockingTxRx( (uint8_t*)&attribCmd, (RFAL_ISODEP_ATTRIB_HDR_LEN + MIN((uint16_t)HLInfoLen, RFAL_ISODEP_ATTRIB_HLINFO_LEN)), (uint8_t*)attribRes, sizeof(rfalIsoDepAttribRes), &rcvLen, RFAL_TXRX_FLAGS_DEFAULT, fwt );
+       
+    *attribResLen = (uint8_t)rcvLen;
     
-    ret = rfalGetTransceiveStatus();
     if( ret == ERR_NONE )
     {
-        gIsoDep.rxBufLen = rfalConvBitsToBytes(gIsoDep.rxBufLen);
-        
         /* Check a for valid ATTRIB Response   Digital 1.1  15.6.2.1 */
-        if( (gIsoDep.rxBufLen < RFAL_ISODEP_ATTRIB_RES_HDR_LEN) || ((gIsoDep.rxBuf[RFAL_ISODEP_ATTRIB_RES_MBLIDID_POS] & RFAL_ISODEP_ATTRIB_RES_DID_MASK) != gIsoDep.did) )
+        if( (rcvLen < RFAL_ISODEP_ATTRIB_RES_HDR_LEN) || ((attribRes->mbliDid & RFAL_ISODEP_ATTRIB_RES_DID_MASK) != DID) )
         {
            return ERR_PROTO;
         }
-        
-        if( gIsoDep.rxLen8 != NULL )
-        {
-            *gIsoDep.rxLen8 = (uint8_t)gIsoDep.rxBufLen;
-        }
-        
-        gIsoDep.ourFsx = rfalIsoDepFSxI2FSx( (uint8_t)(gIsoDep.actv.attribReq.Param.PARAM2 & RFAL_ISODEP_ATTRIB_PARAM2_FSDI_MASK) );
     }
    
    return ret;
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalIsoDepATTRIB( const uint8_t* nfcid0, uint8_t PARAM1, rfalBitRate DSI, rfalBitRate DRI, rfalIsoDepFSxI FSDI, uint8_t PARAM3, uint8_t DID, const uint8_t* HLInfo, uint8_t HLInfoLen, uint32_t fwt, rfalIsoDepAttribRes *attribRes, uint8_t *attribResLen )
-{
-    ReturnCode ret;
-    
-    EXIT_ON_ERR( ret, rfalIsoDepStartATTRIB( nfcid0, PARAM1, DSI, DRI, FSDI, PARAM3, DID, HLInfo, HLInfoLen, fwt, attribRes, attribResLen ) );
-    rfalRunBlocking( ret, rfalIsoDepGetATTRIBStatus() );
-    
-    return ret;
 }
 
 #endif /* RFAL_FEATURE_NFCB */
@@ -2100,339 +1960,241 @@ ReturnCode rfalIsoDepATTRIB( const uint8_t* nfcid0, uint8_t PARAM1, rfalBitRate 
 #if RFAL_FEATURE_NFCA
 
 /*******************************************************************************/
-ReturnCode rfalIsoDepPollAHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, rfalIsoDepDevice *rfalIsoDepDev )
+ReturnCode rfalIsoDepPollAHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, rfalIsoDepDevice *isoDepDev )
 {
-    ReturnCode ret;
+    uint8_t          RATSretries;
+    uint8_t          msgIt;
+    ReturnCode       ret;
+    rfalIsoDepPpsRes ppsRes;
     
-    EXIT_ON_ERR( ret, rfalIsoDepPollAStartActivation( FSDI, DID, maxBR, rfalIsoDepDev ) );
-    rfalRunBlocking( ret, rfalIsoDepPollAGetActivationStatus() );
-    
-    return ret;
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalIsoDepPollAStartActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, rfalIsoDepDevice *rfalIsoDepDev )
-{
-    ReturnCode ret;
-    
-    if( rfalIsoDepDev == NULL )
+    if( isoDepDev == NULL )
     {
         return ERR_PARAM;
     }
     
-    /* Enable EMD supresssion|handling according to  Digital 2.1  4.1.1.1 ; EMVCo 3.0  4.9.2 ; ISO 14443-3  8.3 */
-    rfalSetErrorHandling( RFAL_ERRORHANDLING_EMD );
+    /* Enable EMD handling according   Digital 1.1  4.1.1.1 ; EMVCo 2.6  4.9.2 */
+    rfalSetErrorHandling( RFAL_ERRORHANDLING_EMVCO );
     
-    /* Start RATS Transceive */
-    EXIT_ON_ERR( ret, rfalIsoDepStartRATS( FSDI, DID, &rfalIsoDepDev->activation.A.Listener.ATS, &rfalIsoDepDev->activation.A.Listener.ATSLen ) );
+    RATSretries = gIsoDep.maxRetriesRATS;
     
-    rfalIsoDepDev->info.DSI = maxBR;
-    gIsoDep.actvDev     = rfalIsoDepDev;
-    gIsoDep.cntRRetrys  = gIsoDep.maxRetriesRATS;
-    gIsoDep.state       = ISODEP_ST_PCD_ACT_RATS;
-    
-    return ret;
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalIsoDepPollAGetActivationStatus( void )
-{
-    ReturnCode  ret;
-    uint8_t     msgIt;
-    rfalBitRate maxBR;
-
-    switch( gIsoDep.state )
+    /***************************************************************************/
+    /* Send RATS                                                               */
+    do
     {
-        /*******************************************************************************/
-        case ISODEP_ST_PCD_ACT_RATS:
-            
-            ret = rfalIsoDepGetRATSStatus();
-            if( ret != ERR_BUSY )
-            {
-                if( ret != ERR_NONE )
-                {
-                    /* EMVCo 2.6  9.6.1.1 & 9.6.1.2  If a timeout error is detected retransmit, on transmission error abort */
-                    if( (gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV) && (ret != ERR_TIMEOUT) )
-                    {
-                        break;
-                    }
-                    
-                    if( gIsoDep.cntRRetrys != 0U )
-                    {
-                        /* Ensure FDT before retransmission (reuse RFAL GT timer) */
-                        rfalSetGT( rfalGetFDTPoll() );
-                        rfalFieldOnAndStartGT();
-                        
-                        /* Send RATS retransmission */  /* PRQA S 4342 1 # MISRA 10.5 - Layout of enum rfalIsoDepFSxI is guaranteed whithin 4bit range */
-                        EXIT_ON_ERR( ret, rfalIsoDepStartRATS( (rfalIsoDepFSxI)(uint8_t)(gIsoDep.actv.ratsReq.PARAM >> RFAL_ISODEP_RATS_PARAM_FSDI_SHIFT), 
-                                                                                gIsoDep.did,
-                                                                                &gIsoDep.actvDev->activation.A.Listener.ATS, 
-                                                                                &gIsoDep.actvDev->activation.A.Listener.ATSLen ) );
-                        gIsoDep.cntRRetrys--;
-                        ret = ERR_BUSY;
-                    }
-                    /* Switch between NFC Forum and ISO14443-4 behaviour #595
-                     *   ISO14443-4  5.6.1  If RATS fails, a Deactivation sequence should be performed as defined on clause 8  
-                     *   Activity 1.1  9.6  Device Deactivation Activity is to be only performed when there's an active device */
-                    else if( gIsoDep.compMode == RFAL_COMPLIANCE_MODE_ISO )
-                    {
-                        rfalIsoDepDeselect();
-                    }
-                    else
-                    {
-                        /* MISRA 15.7 - Empty else */
-                    }
-                }
-                else /* ATS received */
-                {
-                    maxBR = gIsoDep.actvDev->info.DSI;             /* Retrieve requested max bitrate */
-                    
-                    /*******************************************************************************/
-                    /* Process ATS Response                                                        */
-                    gIsoDep.actvDev->info.FWI  = RFAL_ISODEP_FWI_DEFAULT; /* Default value   EMVCo 2.6  5.7.2.6  */
-                    gIsoDep.actvDev->info.SFGI = 0U;
-                    gIsoDep.actvDev->info.MBL  = 0U;
-                    gIsoDep.actvDev->info.DSI  = RFAL_BR_106;
-                    gIsoDep.actvDev->info.DRI  = RFAL_BR_106;
-                    gIsoDep.actvDev->info.FSxI = (uint8_t)RFAL_ISODEP_FSXI_32;     /* FSC default value is 32 bytes  ISO14443-A  5.2.3 */
-                    
-                    
-                    /*******************************************************************************/
-                    /* Check for ATS optional fields                                               */
-                    if( gIsoDep.actvDev->activation.A.Listener.ATS.TL > RFAL_ISODEP_ATS_MIN_LEN )
-                    {
-                        msgIt = RFAL_ISODEP_ATS_MIN_LEN;
-                        
-                        /* Format byte T0 is optional, if present assign FSDI */
-                        gIsoDep.actvDev->info.FSxI = (gIsoDep.actvDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_FSCI_MASK);
-                        
-                        /* T0 has already been processed, always the same position */
-                        msgIt++; 
-                        
-                        /* Check if TA is present */
-                        if( (gIsoDep.actvDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_TA_PRESENCE_MASK) != 0U )
-                        {
-                            rfalIsoDepCalcBitRate( maxBR, ((uint8_t*)&gIsoDep.actvDev->activation.A.Listener.ATS)[msgIt++], &gIsoDep.actvDev->info.DSI, &gIsoDep.actvDev->info.DRI );
-                        }
-                        
-                        /* Check if TB is present */
-                        if( (gIsoDep.actvDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_TB_PRESENCE_MASK) != 0U )
-                        {
-                            gIsoDep.actvDev->info.SFGI  = ((uint8_t*)&gIsoDep.actvDev->activation.A.Listener.ATS)[msgIt++];
-                            gIsoDep.actvDev->info.FWI   = (uint8_t)((gIsoDep.actvDev->info.SFGI >> RFAL_ISODEP_ATS_TB_FWI_SHIFT) & RFAL_ISODEP_ATS_FWI_MASK);
-                            gIsoDep.actvDev->info.SFGI &= RFAL_ISODEP_ATS_TB_SFGI_MASK;
-                        }
-                        
-                        /* Check if TC is present */
-                        if( (gIsoDep.actvDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_TC_PRESENCE_MASK) != 0U )
-                        {
-                            /* Check for Protocol features support */
-                            /* Advanced protocol features defined on Digital 1.0 Table 69, removed after */
-                            gIsoDep.actvDev->info.supAdFt = (((((uint8_t*)&gIsoDep.actvDev->activation.A.Listener.ATS)[msgIt]   & RFAL_ISODEP_ATS_TC_ADV_FEAT) != 0U)  ? true : false);
-                            gIsoDep.actvDev->info.supDID  = (((((uint8_t*)&gIsoDep.actvDev->activation.A.Listener.ATS)[msgIt]   & RFAL_ISODEP_ATS_TC_DID)      != 0U)  ? true : false);
-                            gIsoDep.actvDev->info.supNAD  = (((((uint8_t*)&gIsoDep.actvDev->activation.A.Listener.ATS)[msgIt++] & RFAL_ISODEP_ATS_TC_NAD)      != 0U)  ? true : false);
-                        }
-                    }
-                    
-                    gIsoDep.actvDev->info.FSx  = rfalIsoDepFSxI2FSx(gIsoDep.actvDev->info.FSxI);
-                    gIsoDep.fsx                = gIsoDep.actvDev->info.FSx;
-    
-                    gIsoDep.actvDev->info.SFGT = rfalIsoDepSFGI2SFGT( (uint8_t)gIsoDep.actvDev->info.SFGI );
-                    
-                    /* Ensure SFGT before following frame (reuse RFAL GT timer) */
-                    rfalSetGT( rfalConvMsTo1fc(gIsoDep.actvDev->info.SFGT) );
-                    rfalFieldOnAndStartGT();
-                    
-                    gIsoDep.actvDev->info.FWT  = rfalIsoDepFWI2FWT( gIsoDep.actvDev->info.FWI );
-                    gIsoDep.actvDev->info.dFWT = RFAL_ISODEP_DFWT_20;
-                    
-                    gIsoDep.actvDev->info.DID = ( (gIsoDep.actvDev->info.supDID) ? gIsoDep.did : RFAL_ISODEP_NO_DID);
-                    gIsoDep.actvDev->info.NAD = RFAL_ISODEP_NO_NAD;
-                    
-                    
-                    /*******************************************************************************/
-                    /* If higher bit rates are supported by both devices, send PPS                 */
-                    if( (gIsoDep.actvDev->info.DSI != RFAL_BR_106) || (gIsoDep.actvDev->info.DRI != RFAL_BR_106) )
-                    {
-                        /* Send PPS */ /*  PRQA S 0310 1 # MISRA 11.3 - Intentional safe cast to avoiding buffer duplication */
-                        EXIT_ON_ERR( ret, rfalIsoDepStartPPS( gIsoDep.actvDev->info.DID, gIsoDep.actvDev->info.DSI, gIsoDep.actvDev->info.DRI, (rfalIsoDepPpsRes*)&gIsoDep.ctrlBuf ));
-                        
-                        gIsoDep.state = ISODEP_ST_PCD_ACT_PPS;
-                        return ERR_BUSY;
-                    }
-                    
-                    return ERR_NONE;
-                }
-            }
-            break;
+        /* Digital 1.1 13.7.1.1 and ISO 14443-4 5.6.1.1 - Upon a failed RATS it may be retransmited [0,1] */
+        ret = rfalIsoDepRATS( FSDI, DID, &isoDepDev->activation.A.Listener.ATS, &isoDepDev->activation.A.Listener.ATSLen );
         
-        /*******************************************************************************/
-        case ISODEP_ST_PCD_ACT_PPS:
-            ret = rfalIsoDepGetPPSSTatus();
-            if( ret != ERR_BUSY )
-            {
-                /* Check whether PPS has been acknowledge */
-                if( ret == ERR_NONE )
-                {
-                    /* DSI code the divisor from PICC to PCD */
-                    /* DRI code the divisor from PCD to PICC */
-                    rfalSetBitRate( gIsoDep.actvDev->info.DRI, gIsoDep.actvDev->info.DSI );
-                }
-                else
-                {
-                    /* If PPS has faled keep activation bit rate */
-                    gIsoDep.actvDev->info.DSI = RFAL_BR_106;
-                    gIsoDep.actvDev->info.DRI = RFAL_BR_106;
-                    
-                    /* Ignore PPS response fail, proceed to data exchange */
-                    ret = ERR_NONE;
-                }
-            }
+        /* EMVCo 2.6  9.6.1.1 & 9.6.1.2  If a timeout error is detected retransmit, on transmission error abort */
+        if( (gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV) && (ret != ERR_NONE) && (ret != ERR_TIMEOUT) )
+        {
             break;
-
-        /*******************************************************************************/    
-        default:
-            ret = ERR_WRONG_STATE;
-            break;
+        }
+        
+        platformDelay(1);
+    }
+    while( ((RATSretries--) != 0U) && (ret != ERR_NONE) );
+    
+    
+    
+    /* Switch between NFC Forum and ISO14443-4 behaviour #595
+     *   ISO14443-4  5.6.1  If RATS fails, a Deactivation sequence should be performed as defined on clause 8  
+     *   Activity 1.1  9.6  Device Deactivation Activity is to be only performed when there's an active device */
+    if( ret != ERR_NONE )
+    {
+        if( gIsoDep.compMode == RFAL_COMPLIANCE_MODE_ISO )
+        {
+            rfalIsoDepDeselect();
+        }
+        return ret;
     }
     
-    return ret;
+    /*******************************************************************************/
+    /* Process ATS Response                                                        */
+    isoDepDev->info.FWI  = RFAL_ISODEP_FWI_DEFAULT; /* Default value   EMVCo 2.6  5.7.2.6  */
+    isoDepDev->info.SFGI = 0;
+    isoDepDev->info.MBL  = 0;
+    isoDepDev->info.DSI  = RFAL_BR_106;
+    isoDepDev->info.DRI  = RFAL_BR_106;
+    isoDepDev->info.FSxI = (uint8_t)RFAL_ISODEP_FSXI_32;     /* FSC default value is 32 bytes  ISO14443-A  5.2.3 */
+    
+    
+    /*******************************************************************************/
+    /* Check for ATS optional fields                                               */
+    if( isoDepDev->activation.A.Listener.ATS.TL > RFAL_ISODEP_ATS_MIN_LEN )
+    {
+        msgIt = RFAL_ISODEP_ATS_MIN_LEN;
+        
+        /* Format byte T0 is optional, if present assign FSDI */
+        isoDepDev->info.FSxI = (isoDepDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_FSCI_MASK);
+        
+        /* T0 has already been processed, always the same position */
+        msgIt++; 
+        
+        /* Check if TA is present */
+        if( (isoDepDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_TA_PRESENCE_MASK) != 0U )
+        {
+            rfalIsoDepCalcBitRate( maxBR, ((uint8_t*)&isoDepDev->activation.A.Listener.ATS)[msgIt++], &isoDepDev->info.DSI, &isoDepDev->info.DRI );
+        }
+        
+        /* Check if TB is present */
+        if( (isoDepDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_TB_PRESENCE_MASK) != 0U )
+        {
+            isoDepDev->info.SFGI  = ((uint8_t*)&isoDepDev->activation.A.Listener.ATS)[msgIt++];
+            isoDepDev->info.FWI   = (uint8_t)((isoDepDev->info.SFGI >> RFAL_ISODEP_ATS_TB_FWI_SHIFT) & RFAL_ISODEP_ATS_FWI_MASK);
+            isoDepDev->info.SFGI &= RFAL_ISODEP_ATS_TB_SFGI_MASK;
+        }
+        
+        /* Check if TC is present */
+        if( (isoDepDev->activation.A.Listener.ATS.T0 & RFAL_ISODEP_ATS_T0_TC_PRESENCE_MASK) != 0U )
+        {
+            /* Check for Protocol features support */
+            /* Advanced protocol features defined on Digital 1.0 Table 69, removed after */
+            isoDepDev->info.supAdFt = (((((uint8_t*)&isoDepDev->activation.A.Listener.ATS)[msgIt]   & RFAL_ISODEP_ATS_TC_ADV_FEAT) != 0U)  ? true : false);
+            isoDepDev->info.supDID  = (((((uint8_t*)&isoDepDev->activation.A.Listener.ATS)[msgIt]   & RFAL_ISODEP_ATS_TC_DID)      != 0U)  ? true : false);
+            isoDepDev->info.supNAD  = (((((uint8_t*)&isoDepDev->activation.A.Listener.ATS)[msgIt++] & RFAL_ISODEP_ATS_TC_NAD)      != 0U)  ? true : false);
+        }
+    }
+    
+    isoDepDev->info.FSx  = rfalIsoDepFSxI2FSx(isoDepDev->info.FSxI);
+    
+    isoDepDev->info.SFGT = rfalIsoDepSFGI2SFGT( (uint8_t)isoDepDev->info.SFGI );
+    isoDepTimerStart( gIsoDep.SFGTTimer, isoDepDev->info.SFGT );
+    
+    isoDepDev->info.FWT  = rfalIsoDepFWI2FWT( isoDepDev->info.FWI );
+    isoDepDev->info.dFWT = RFAL_ISODEP_DFWT_10;
+    
+    isoDepDev->info.DID = ( (isoDepDev->info.supDID) ? DID : RFAL_ISODEP_NO_DID);
+    isoDepDev->info.NAD = RFAL_ISODEP_NO_NAD;
+    
+    
+    /*******************************************************************************/
+    /* If higher bit rates are supported by both devices, send PPS                 */
+    if( (isoDepDev->info.DSI != RFAL_BR_106) || (isoDepDev->info.DRI != RFAL_BR_106) )
+    {
+        /* Wait until SFGT has been fulfilled */
+        while( !isoDepTimerisExpired( gIsoDep.SFGTTimer ) ) { /* MISRA 15.6: mandatory brackets */ };
+        
+        ret = rfalIsoDepPPS( isoDepDev->info.DID, isoDepDev->info.DSI, isoDepDev->info.DRI, &ppsRes );
+        
+        if( ret == ERR_NONE )
+        {
+            /* DSI code the divisor from PICC to PCD */
+            /* DRI code the divisor from PCD to PICC */
+            rfalSetBitRate( isoDepDev->info.DRI, isoDepDev->info.DSI );
+        }
+        else
+        {
+            isoDepDev->info.DSI = RFAL_BR_106;
+            isoDepDev->info.DRI = RFAL_BR_106;
+        }
+    }
+    
+    /*******************************************************************************/
+    /* Store already FS info,  rfalIsoDepGetMaxInfLen() may be called before setting TxRx params */
+    gIsoDep.fsx    = isoDepDev->info.FSx;
+    gIsoDep.ourFsx = rfalIsoDepFSxI2FSx( (uint8_t)FSDI );
+    
+    return ERR_NONE;
 }
+
 #endif /* RFAL_FEATURE_NFCA */
 
 #if RFAL_FEATURE_NFCB
 
 /*******************************************************************************/
-ReturnCode rfalIsoDepPollBHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, uint8_t PARAM1, const rfalNfcbListenDevice *nfcbDev, const uint8_t* HLInfo, uint8_t HLInfoLen, rfalIsoDepDevice *rfalIsoDepDev )
-{
-    
-    ReturnCode ret;
-    
-    EXIT_ON_ERR( ret, rfalIsoDepPollBStartActivation( FSDI, DID, maxBR, PARAM1, nfcbDev, HLInfo, HLInfoLen, rfalIsoDepDev ) );
-    rfalRunBlocking( ret, rfalIsoDepPollBGetActivationStatus() );
-    
-    return ret;
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalIsoDepPollBStartActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, uint8_t PARAM1, const rfalNfcbListenDevice *nfcbDev, const uint8_t* HLInfo, uint8_t HLInfoLen, rfalIsoDepDevice *rfalIsoDepDev )
+ReturnCode rfalIsoDepPollBHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, uint8_t PARAM1, const rfalNfcbListenDevice *nfcbDev, const uint8_t* HLInfo, uint8_t HLInfoLen, rfalIsoDepDevice *isoDepDev )
 {
     ReturnCode ret;
+    uint8_t    mlbi;
     
     /***************************************************************************/
     /* Initialize ISO-DEP Device with info from SENSB_RES                      */
-    rfalIsoDepDev->info.FWI     = ((nfcbDev->sensbRes.protInfo.FwiAdcFo >> RFAL_NFCB_SENSB_RES_FWI_SHIFT) & RFAL_NFCB_SENSB_RES_FWI_MASK);
-    rfalIsoDepDev->info.FWT     = rfalIsoDepFWI2FWT( rfalIsoDepDev->info.FWI );
-    rfalIsoDepDev->info.dFWT    = RFAL_NFCB_DFWT;
-    rfalIsoDepDev->info.SFGI    = (((uint32_t)nfcbDev->sensbRes.protInfo.SFGI >> RFAL_NFCB_SENSB_RES_SFGI_SHIFT) & RFAL_NFCB_SENSB_RES_SFGI_MASK);
-    rfalIsoDepDev->info.SFGT    = rfalIsoDepSFGI2SFGT( (uint8_t)rfalIsoDepDev->info.SFGI );
-    rfalIsoDepDev->info.FSxI    = ((nfcbDev->sensbRes.protInfo.FsciProType >> RFAL_NFCB_SENSB_RES_FSCI_SHIFT) & RFAL_NFCB_SENSB_RES_FSCI_MASK);
-    rfalIsoDepDev->info.FSx     = rfalIsoDepFSxI2FSx(rfalIsoDepDev->info.FSxI);
-    rfalIsoDepDev->info.DID     = DID;
-    rfalIsoDepDev->info.supDID  = ((( nfcbDev->sensbRes.protInfo.FwiAdcFo & RFAL_NFCB_SENSB_RES_FO_DID_MASK ) != 0U) ? true : false);
-    rfalIsoDepDev->info.supNAD  = ((( nfcbDev->sensbRes.protInfo.FwiAdcFo & RFAL_NFCB_SENSB_RES_FO_NAD_MASK ) != 0U) ? true : false);
+    isoDepDev->info.FWI     = ((nfcbDev->sensbRes.protInfo.FwiAdcFo >> RFAL_NFCB_SENSB_RES_FWI_SHIFT) & RFAL_NFCB_SENSB_RES_FWI_MASK);
+    isoDepDev->info.FWT     = rfalIsoDepFWI2FWT( isoDepDev->info.FWI );
+    isoDepDev->info.dFWT    = RFAL_NFCB_DFWT_10;
+    isoDepDev->info.SFGI    = (((uint32_t)nfcbDev->sensbRes.protInfo.SFGI >> RFAL_NFCB_SENSB_RES_SFGI_SHIFT) & RFAL_NFCB_SENSB_RES_SFGI_MASK);
+    isoDepDev->info.SFGT    = rfalIsoDepSFGI2SFGT( (uint8_t)isoDepDev->info.SFGI );
+    isoDepDev->info.FSxI    = ((nfcbDev->sensbRes.protInfo.FsciProType >> RFAL_NFCB_SENSB_RES_FSCI_SHIFT) & RFAL_NFCB_SENSB_RES_FSCI_MASK);
+    isoDepDev->info.FSx     = rfalIsoDepFSxI2FSx(isoDepDev->info.FSxI);
+    isoDepDev->info.DID     = DID;
+    isoDepDev->info.supDID  = ((( nfcbDev->sensbRes.protInfo.FwiAdcFo & RFAL_NFCB_SENSB_RES_FO_DID_MASK ) != 0U) ? true : false);
+    isoDepDev->info.supNAD  = ((( nfcbDev->sensbRes.protInfo.FwiAdcFo & RFAL_NFCB_SENSB_RES_FO_NAD_MASK ) != 0U) ? true : false);
     
     
     /* Check if DID requested is supported by PICC */
-    if( (DID != RFAL_ISODEP_NO_DID) && (!rfalIsoDepDev->info.supDID) )
+    if( (DID != RFAL_ISODEP_NO_DID) && (!isoDepDev->info.supDID) )
     {
         return ERR_PARAM;
     }
     
-    /* Enable EMD supresssion|handling according to  Digital 2.1  4.1.1.1 ; EMVCo 3.0  4.9.2 ; ISO 14443-3  8.3 */
-    rfalSetErrorHandling( RFAL_ERRORHANDLING_EMD );
+    /* Enable EMD handling according   Digital 1.1  4.1.1.1 ; EMVCo 2.6  4.9.2 */
+    rfalSetErrorHandling( RFAL_ERRORHANDLING_EMVCO );
     
     /***************************************************************************/
-    /* Set FDT Poll to be used on upcoming communications                      */
-    if( gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV )
-    {
-        /* Disregard Minimum TR2 returned by PICC, always use FDTb MIN   EMVCo 3.0  6.3.2.10  */
-        rfalSetFDTPoll( RFAL_FDT_POLL_NFCB_POLLER );
-    }
-    else
-    {
-        /* Apply minimum TR2 from SENSB_RES   Digital 2.1  7.6.2.23 */
-        rfalSetFDTPoll( rfalNfcbTR2ToFDT(((nfcbDev->sensbRes.protInfo.FsciProType >>RFAL_NFCB_SENSB_RES_PROTO_TR2_SHIFT) & RFAL_NFCB_SENSB_RES_PROTO_TR2_MASK)) );
-    }
+    /* Apply minimum TR2 from SENSB_RES  */
+    rfalSetFDTPoll( rfalNfcbTR2ToFDT(((nfcbDev->sensbRes.protInfo.FsciProType >>RFAL_NFCB_SENSB_RES_PROTO_TR2_SHIFT) & RFAL_NFCB_SENSB_RES_PROTO_TR2_MASK)) );
     
     
     /* Calculate max Bit Rate */
-    rfalIsoDepCalcBitRate( maxBR, nfcbDev->sensbRes.protInfo.BRC, &rfalIsoDepDev->info.DSI, &rfalIsoDepDev->info.DRI );
+    rfalIsoDepCalcBitRate( maxBR, nfcbDev->sensbRes.protInfo.BRC, &isoDepDev->info.DSI, &isoDepDev->info.DRI );
     
     /***************************************************************************/
     /* Send ATTRIB Command                                                     */
-    EXIT_ON_ERR( ret, rfalIsoDepStartATTRIB( (const uint8_t*)&nfcbDev->sensbRes.nfcid0,
-                               (((nfcbDev->sensbRes.protInfo.FwiAdcFo & RFAL_NFCB_SENSB_RES_ADC_ADV_FEATURE_MASK) != 0U) ? PARAM1 : RFAL_ISODEP_ATTRIB_REQ_PARAM1_DEFAULT),
-                               rfalIsoDepDev->info.DSI,
-                               rfalIsoDepDev->info.DRI,
-                               FSDI,
-                               (gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV) ? RFAL_NFCB_SENSB_RES_PROTO_ISO_MASK : (nfcbDev->sensbRes.protInfo.FsciProType & ( (RFAL_NFCB_SENSB_RES_PROTO_TR2_MASK<<RFAL_NFCB_SENSB_RES_PROTO_TR2_SHIFT) | RFAL_NFCB_SENSB_RES_PROTO_ISO_MASK)),  /* EMVCo 2.6 6.4.1.9 */
-                               DID,
-                               HLInfo,
-                               HLInfoLen,
-                               (rfalIsoDepDev->info.FWT + rfalIsoDepDev->info.dFWT),
-                               &rfalIsoDepDev->activation.B.Listener.ATTRIB_RES,
-                               &rfalIsoDepDev->activation.B.Listener.ATTRIB_RESLen
-                             ) );
+    ret = rfalIsoDepATTRIB( (const uint8_t*)&nfcbDev->sensbRes.nfcid0,
+                           (((nfcbDev->sensbRes.protInfo.FwiAdcFo & RFAL_NFCB_SENSB_RES_ADC_ADV_FEATURE_MASK) != 0U) ? PARAM1 : RFAL_ISODEP_ATTRIB_REQ_PARAM1_DEFAULT),
+                           isoDepDev->info.DSI,
+                           isoDepDev->info.DRI,
+                           FSDI,
+                           (gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV) ? RFAL_NFCB_SENSB_RES_PROTO_ISO_MASK : (nfcbDev->sensbRes.protInfo.FsciProType & ( (RFAL_NFCB_SENSB_RES_PROTO_TR2_MASK<<RFAL_NFCB_SENSB_RES_PROTO_TR2_SHIFT) | RFAL_NFCB_SENSB_RES_PROTO_ISO_MASK)),  /* EMVCo 2.6 6.4.1.9 */
+                           DID,
+                           HLInfo,
+                           HLInfoLen,
+                           (isoDepDev->info.FWT + isoDepDev->info.dFWT),
+                           &isoDepDev->activation.B.Listener.ATTRIB_RES,
+                           &isoDepDev->activation.B.Listener.ATTRIB_RESLen
+                         );
     
-    
-    gIsoDep.actvDev = rfalIsoDepDev;
-    return ret;
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalIsoDepPollBGetActivationStatus( void )
-{
-    ReturnCode ret;
-    uint8_t    mbli;
-
     /***************************************************************************/
     /* Process ATTRIB Response                                                 */
-    ret = rfalIsoDepGetATTRIBStatus();
-    if( ret != ERR_BUSY)
+    if( ret == ERR_NONE )
     {
-        if( ret == ERR_NONE )
+        /* Digital 1.1 14.6.2.3 - Check if received DID match */
+        if( (isoDepDev->activation.B.Listener.ATTRIB_RES.mbliDid & RFAL_ISODEP_ATTRIB_RES_DID_MASK) != DID )
         {
-            /* Digital 1.1 14.6.2.3 - Check if received DID match */
-            if( (gIsoDep.actvDev->activation.B.Listener.ATTRIB_RES.mbliDid & RFAL_ISODEP_ATTRIB_RES_DID_MASK) != gIsoDep.did )
-            {
-                return ERR_PROTO;
-            }
-                    
-            /* Retrieve MBLI and calculate new FDS/MBL (Maximum Buffer Length) */
-            mbli = ((gIsoDep.actvDev->activation.B.Listener.ATTRIB_RES.mbliDid >> RFAL_ISODEP_ATTRIB_RES_MBLI_SHIFT) & RFAL_ISODEP_ATTRIB_RES_MBLI_MASK);
-            if( mbli > 0U)
-            {
-                /* Digital 1.1  14.6.2  Calculate Maximum Buffer Length MBL = FSC x 2^(MBLI-1) */
-                gIsoDep.actvDev->info.MBL = (gIsoDep.actvDev->info.FSx * ((uint32_t)1U<<(mbli-1U)));
-            }
-            
-            /* DSI code the divisor from PICC to PCD */
-            /* DRI code the divisor from PCD to PICC */
-            rfalSetBitRate( gIsoDep.actvDev->info.DRI, gIsoDep.actvDev->info.DSI );
-            
-            
-            /* REMARK: SoF EoF TR0 and TR1 are not passed on to RF layer */
-            
-            
-            /* Start the SFGT timer (reuse RFAL GT timer) */
-            rfalSetGT( rfalConvMsTo1fc(gIsoDep.actvDev->info.SFGT) );
-            rfalFieldOnAndStartGT();
+            return ERR_PROTO;
         }
-        else
+                
+        /* Retrieve MBLI and calculate new FDS/MBL (Maximum Buffer Length) */
+        mlbi = ((isoDepDev->activation.B.Listener.ATTRIB_RES.mbliDid >> RFAL_ISODEP_ATTRIB_RES_MLBI_SHIFT) & RFAL_ISODEP_ATTRIB_RES_MLBI_MASK);
+        if( mlbi > 0U)
         {
-            gIsoDep.actvDev->info.DSI = RFAL_BR_106;
-            gIsoDep.actvDev->info.DRI = RFAL_BR_106;
+            /* Digital 1.1  14.6.2  Calculate Maximum Buffer Length MBL = FSC x 2^(MBLI-1) */
+            isoDepDev->info.MBL = (isoDepDev->info.FSx * ((uint32_t)1U<<(mlbi-1U)));
         }
         
-        /*******************************************************************************/
-        /* Store already FS info,  rfalIsoDepGetMaxInfLen() may be called before setting TxRx params */
-        gIsoDep.fsx    = gIsoDep.actvDev->info.FSx;
+        /* DSI code the divisor from PICC to PCD */
+        /* DRI code the divisor from PCD to PICC */
+        rfalSetBitRate( isoDepDev->info.DRI, isoDepDev->info.DSI );
+        
+        
+        if( (nfcbDev->sensbRes.protInfo.FwiAdcFo & RFAL_NFCB_SENSB_RES_ADC_ADV_FEATURE_MASK) != 0U )
+        {
+            /* REMARK: SoF EoF TR0 and TR1 are not passed on to RF layer */
+        }
+        
+        /* Start the SFGT timer */
+        isoDepTimerStart( gIsoDep.SFGTTimer, isoDepDev->info.SFGT );
     }
+    else
+    {
+        isoDepDev->info.DSI = RFAL_BR_106;
+        isoDepDev->info.DRI = RFAL_BR_106;
+    }
+    
+    /*******************************************************************************/
+    /* Store already FS info,  rfalIsoDepGetMaxInfLen() may be called before setting TxRx params */
+    gIsoDep.fsx    = isoDepDev->info.FSx;
+    gIsoDep.ourFsx = rfalIsoDepFSxI2FSx( (uint8_t)FSDI );
     
     return ret;
 }
@@ -2441,7 +2203,7 @@ ReturnCode rfalIsoDepPollBGetActivationStatus( void )
 
 
 /*******************************************************************************/
-ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *rfalIsoDepDev, rfalBitRate maxTxBR, rfalBitRate maxRxBR )
+ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *isoDepDev, rfalBitRate maxTxBR, rfalBitRate maxRxBR )
 {
     uint8_t                    it;
     uint8_t                    supPCD2PICC;
@@ -2455,7 +2217,7 @@ ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *rfalIsoDepDev, rfa
     rfalIsoDepControlMsgSParam sParam;
    
   
-    if( (rfalIsoDepDev == NULL) || (maxTxBR > RFAL_BR_13560) || (maxRxBR > RFAL_BR_13560) )
+    if( (isoDepDev == NULL) || (maxTxBR > RFAL_BR_13560) || (maxRxBR > RFAL_BR_13560) )
     {
         return ERR_PARAM;
     }
@@ -2474,8 +2236,7 @@ ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *rfalIsoDepDev, rfa
     sParam.sParam.value[it++] = RFAL_ISODEP_SPARAM_TAG_BRREQ_LEN;
     sParam.sParam.length      = it;
     
-    /* Send S(PARAMETERS). Use a fixed FWI of 4   ISO14443-4 2016  7.2 */
-    EXIT_ON_ERR( ret, rfalTransceiveBlockingTxRx( (uint8_t*)&sParam, (RFAL_ISODEP_SPARAM_HDR_LEN + (uint16_t)it), (uint8_t*)&sParam, sizeof(rfalIsoDepControlMsgSParam), &rcvLen, RFAL_TXRX_FLAGS_DEFAULT, ISODEP_FWT_DEACTIVATION ));
+    EXIT_ON_ERR( ret, rfalTransceiveBlockingTxRx( (uint8_t*)&sParam, (RFAL_ISODEP_SPARAM_HDR_LEN + (uint16_t)it), (uint8_t*)&sParam, sizeof(rfalIsoDepControlMsgSParam), &rcvLen, RFAL_TXRX_FLAGS_DEFAULT, (isoDepDev->info.FWT + isoDepDev->info.dFWT) ));
     
     it = 0;
     
@@ -2543,7 +2304,7 @@ ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *rfalIsoDepDev, rfa
     sParam.sParam.value[it++] = 0x00U;
     sParam.sParam.length      = it;
     
-    EXIT_ON_ERR( ret, rfalTransceiveBlockingTxRx( (uint8_t*)&sParam, (RFAL_ISODEP_SPARAM_HDR_LEN + (uint16_t)it), (uint8_t*)&sParam, sizeof(rfalIsoDepControlMsgSParam), &rcvLen, RFAL_TXRX_FLAGS_DEFAULT, (rfalIsoDepDev->info.FWT + rfalIsoDepDev->info.dFWT) ));
+    EXIT_ON_ERR( ret, rfalTransceiveBlockingTxRx( (uint8_t*)&sParam, (RFAL_ISODEP_SPARAM_HDR_LEN + (uint16_t)it), (uint8_t*)&sParam, sizeof(rfalIsoDepControlMsgSParam), &rcvLen, RFAL_TXRX_FLAGS_DEFAULT, (isoDepDev->info.FWT + isoDepDev->info.dFWT) ));
     
     it = 0;
     
@@ -2557,8 +2318,8 @@ ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *rfalIsoDepDev, rfa
     
     EXIT_ON_ERR( ret, rfalSetBitRate( txBR, rxBR ) );
     
-    rfalIsoDepDev->info.DRI = txBR;
-    rfalIsoDepDev->info.DSI = rxBR;
+    isoDepDev->info.DRI = txBR;
+    isoDepDev->info.DSI = rxBR;
     
     return ERR_NONE;
 }
@@ -2569,7 +2330,7 @@ static void rfalIsoDepCalcBitRate( rfalBitRate maxAllowedBR, uint8_t piccBRCapab
 {
     uint8_t     driMask;
     uint8_t     dsiMask;
-    int16_t      i;
+    int8_t      i;
     bool        bitrateFound;
     rfalBitRate curMaxBR;
     
@@ -2583,7 +2344,7 @@ static void rfalIsoDepCalcBitRate( rfalBitRate maxAllowedBR, uint8_t piccBRCapab
         (*dri) = RFAL_BR_106;
         
         /* Digital 1.0  5.6.2.5 & 11.6.2.14: A received RFU value of b4 = 1b MUST be interpreted as if b7 to b1 ? 0000000b (only 106 kbits/s in both direction) */
-        if( ((RFAL_ISODEP_BITRATE_RFU_MASK & piccBRCapability) != 0U) || (curMaxBR > RFAL_BR_848) || (curMaxBR == RFAL_BR_KEEP) )
+        if( ((RFAL_ISODEP_BITRATE_RFU_MASK & piccBRCapability) != 0U) || (curMaxBR > RFAL_BR_848) )
         {
             return;
         }
@@ -2591,7 +2352,7 @@ static void rfalIsoDepCalcBitRate( rfalBitRate maxAllowedBR, uint8_t piccBRCapab
         /***************************************************************************/
         /* Determine Listen->Poll bit rate */
         dsiMask = (piccBRCapability & RFAL_ISODEP_BSI_MASK);
-        for( i = 2; i >= 0; i-- )  /* Check supported bit rate from the highest */
+        for( i = 2; i >= 0; i-- )  // Check supported bit rate from the highest 
         {
             if (((dsiMask & (0x10U << (uint8_t)i)) != 0U) && (((uint8_t)i+1U) <= (uint8_t)curMaxBR))
             {
@@ -2649,7 +2410,7 @@ static uint32_t rfalIsoDepSFGI2SFGT( uint8_t sfgi )
     if (tmpSFGI != ISODEP_SFGI_MIN)
     {
         /* If sfgi != 0 wait SFGT + dSFGT   Digital 1.1  13.8.2.1 */
-        sfgt  = rfalIsoDepCalcSGFT(sfgi) + rfalIsoDepCalcdSGFT(sfgi);
+        sfgt  = isoDepCalcSGFT(sfgi) + isoDepCalcdSGFT(sfgi);
     }
     /* Otherwise use FDTPoll min Digital  1.1  13.8.2.3*/
     else
@@ -2704,8 +2465,8 @@ ReturnCode rfalIsoDepStartApduTransceive( rfalIsoDepApduTxRxParam param )
     gIsoDep.APDUTxPos = 0;
     gIsoDep.APDURxPos = 0;
     
-    /* Assign current FSx to calculate INF length (only change the FSx from activation if no to Keep) */
-    gIsoDep.ourFsx = (( param.ourFSx != RFAL_ISODEP_FSX_KEEP ) ? param.ourFSx : gIsoDep.ourFsx);
+    /* Assign current FSx to calculate INF length */
+    gIsoDep.ourFsx = param.ourFSx;
     gIsoDep.fsx    = param.FSx;
     
     /* Convert APDU TxRxParams to I-Block TxRxParams */
@@ -2726,7 +2487,7 @@ ReturnCode rfalIsoDepGetApduTransceiveStatus( void )
     {
         /*******************************************************************************/
         case ERR_NONE:
-            
+         
             /* Check if we are still doing chaining on Tx */
             if( gIsoDep.isTxChaining )
             {
@@ -2742,55 +2503,41 @@ ReturnCode rfalIsoDepGetApduTransceiveStatus( void )
                     ST_MEMCPY( gIsoDep.APDUParam.txBuf->apdu, &gIsoDep.APDUParam.txBuf->apdu[gIsoDep.APDUTxPos], txRxParam.txBufLen );
                 }
                 
-                EXIT_ON_ERR( ret, rfalIsoDepStartTransceive( txRxParam ) );
+                rfalIsoDepStartTransceive( txRxParam );
                 return ERR_BUSY;
-            }
-             
-            /* APDU TxRx is done */
-            /* fall through */
-         
-        /*******************************************************************************/
-        case ERR_AGAIN:        /*  PRQA S 2003 # MISRA 16.3 - Intentional fall through */
-            
-            /* Check if no APDU transceive has been started before (data from rfalIsoDepListenStartActivation) */
-            if( gIsoDep.APDUParam.rxLen == NULL )
-            {
-                if( ret == ERR_AGAIN  )
-                {
-                    /* In Listen mode first chained packet cannot be retrieved via APDU interface */
-                    return ERR_NOTSUPP;
-                }
-                
-                /* TxRx is complete and full data is already available */
-                return ERR_NONE;
             }
             
             if( *gIsoDep.APDUParam.rxLen > 0U )    /* MISRA 21.18 */
             {
-                /* Ensure that data in tmpBuf still fits into APDU buffer */
-                if( (gIsoDep.APDURxPos + (*gIsoDep.APDUParam.rxLen)) > (uint16_t)RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN )
-                {
-                    return ERR_NOMEM;
-                }
-                
+                /* Copy packet from tmp buffer to APDU buffer */
+                ST_MEMCPY( &gIsoDep.APDUParam.rxBuf->apdu[gIsoDep.APDURxPos], gIsoDep.APDUParam.tmpBuf->inf, *gIsoDep.APDUParam.rxLen );
+                gIsoDep.APDURxPos += *gIsoDep.APDUParam.rxLen;
+            }
+             
+            /* APDU TxRx is done */
+            break;
+         
+        /*******************************************************************************/
+        case ERR_AGAIN:
+            
+            if( *gIsoDep.APDUParam.rxLen > 0U )    /* MISRA 21.18 */
+            {
                 /* Copy chained packet from tmp buffer to APDU buffer */
                 ST_MEMCPY( &gIsoDep.APDUParam.rxBuf->apdu[gIsoDep.APDURxPos], gIsoDep.APDUParam.tmpBuf->inf, *gIsoDep.APDUParam.rxLen );
                 gIsoDep.APDURxPos += *gIsoDep.APDUParam.rxLen;
             }
             
-            /* Update output param rxLen */
-            *gIsoDep.APDUParam.rxLen = gIsoDep.APDURxPos;
-            
-            /* Wait for following I-Block or APDU TxRx has finished */
-            return ((ret == ERR_AGAIN) ? ERR_BUSY : ERR_NONE);
+            /* Wait for next I-Block */
+            return ERR_BUSY;
         
         /*******************************************************************************/
         default:
-            /* MISRA 16.4: no empty default statement (a comment being enough) */
-            break;
+            return ret;
     }
     
-    return ret;
+    *gIsoDep.APDUParam.rxLen = gIsoDep.APDURxPos;
+    
+    return ERR_NONE;
  }
 
 #endif /* RFAL_FEATURE_ISO_DEP */

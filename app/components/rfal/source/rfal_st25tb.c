@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *      www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 /*
  *      PROJECT:   ST25R391x firmware
@@ -43,7 +48,7 @@
  ******************************************************************************
  */
 #ifndef RFAL_FEATURE_ST25TB
-    #define RFAL_FEATURE_ST25TB   false    /* ST25TB module configuration missing. Disabled by default */
+    #error " RFAL: Module configuration missing. Please enable/disable ST25TB module by setting: RFAL_FEATURE_ST25TB "
 #endif
 
 #if RFAL_FEATURE_ST25TB
@@ -494,25 +499,15 @@ ReturnCode rfalSt25tbPollerWriteBlock( uint8_t blockAddress, const rfalSt25tbBlo
     /* Send Write Block Request */
     ret = rfalTransceiveBlockingTxRx( (uint8_t*)&writeBlockReq, sizeof(rfalSt25tbWriteBlockReq), tmpBlockData, RFAL_ST25TB_BLOCK_LEN, &rxLen, RFAL_TXRX_FLAGS_DEFAULT, (RFAL_ST25TB_FWT + RFAL_ST25TB_TW) );
     
-    
-    /* Check if there was any error besides timeout */
+    /* Check if an unexpected answer was received */
+    if( ret == ERR_NONE )
+    {
+        return ERR_PROTO; 
+    }
+    /* Check there was any error besides Timeout*/
     if( ret != ERR_TIMEOUT )
     {
-        /* Check if an unexpected answer was received */
-        if( ret == ERR_NONE )
-        {
-            return ERR_PROTO;
-        }
-    
-        /* Check whether a transmission error occurred */
-        if( (ret != ERR_CRC) && (ret != ERR_FRAMING) && (ret != ERR_NOMEM) && (ret != ERR_RF_COLLISION) )
-        {
-            return ret;
-        }
-        
-        /* If a transmission error occurred (maybe noise while commiting data) wait maximum programming time and verify data afterwards */
-        rfalSetGT( (RFAL_ST25TB_FWT + RFAL_ST25TB_TW) );
-        rfalFieldOnAndStartGT();
+        return ret;
     }
     
     ret = rfalSt25tbPollerReadBlock(blockAddress, &tmpBlockData);

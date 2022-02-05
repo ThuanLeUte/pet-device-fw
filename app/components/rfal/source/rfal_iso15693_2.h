@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 /*
  *      PROJECT:   ST25R391x firmware
@@ -53,16 +58,16 @@ typedef enum
 {
     ISO15693_VCD_CODING_1_4,
     ISO15693_VCD_CODING_1_256
-}rfalIso15693VcdCoding_t;
+}iso15693VcdCoding_t;
 
 /*! Enum holding possible VICC datarates */
 
-/*! Configuration parameter used by rfalIso15693PhyConfigure  */
+/*! Configuration parameter used by #iso15693PhyConfigure  */
 typedef struct
 {
-    rfalIso15693VcdCoding_t coding;       /*!< desired VCD coding                                       */
+    iso15693VcdCoding_t coding;           /*!< desired VCD coding                                       */
     uint32_t                speedMode;    /*!< 0: normal mode, 1: 2^1 = x2 Fast mode, 2 : 2^2 = x4 mode, 3 : 2^3 = x8 mode - all rx pulse numbers and times are divided by 1,2,4,8 */
-}rfalIso15693PhyConfig_t;
+}iso15693PhyConfig_t;
 
 /*! Parameters how the stream mode should work */
 struct iso15693StreamConfig {
@@ -97,7 +102,7 @@ struct iso15693StreamConfig {
  *****************************************************************************
  *  \brief  Initialize the ISO15693 phy
  *
- *  \param[in] config : ISO15693 phy related configuration (See rfalIso15693PhyConfig_t)
+ *  \param[in] config : ISO15693 phy related configuration (See #iso15693PhyConfig_t)
  *  \param[out] needed_stream_config : return a pointer to the stream config 
  *              needed for this iso15693 config. To be used for configure RF chip.
  *
@@ -106,14 +111,15 @@ struct iso15693StreamConfig {
  *
  *****************************************************************************
  */
-extern ReturnCode rfalIso15693PhyConfigure(const rfalIso15693PhyConfig_t* config, const struct iso15693StreamConfig ** needed_stream_config  );
+extern ReturnCode iso15693PhyConfigure(const iso15693PhyConfig_t* config,
+                                       const struct iso15693StreamConfig ** needed_stream_config  );
 
 /*! 
  *****************************************************************************
  *  \brief  Return current phy configuration
  *
  *  This function returns current Phy configuration previously
- *  set by rfalIso15693PhyConfigure
+ *  set by #iso15693PhyConfigure
  *
  *  \param[out] config : ISO15693 phy configuration.
  *
@@ -121,14 +127,14 @@ extern ReturnCode rfalIso15693PhyConfigure(const rfalIso15693PhyConfig_t* config
  *
  *****************************************************************************
  */
-extern ReturnCode rfalIso15693PhyGetConfiguration(rfalIso15693PhyConfig_t* config);
+extern ReturnCode iso15693PhyGetConfiguration(iso15693PhyConfig_t* config);
 
 /*! 
  *****************************************************************************
  *  \brief  Code an ISO15693 compatible frame
  *
  *  This function takes \a length bytes from \a buffer, perform proper
- *  encoding and sends out the frame to the ST25R391x.
+ *  encoding and sends out the frame to the ST25R3911.
  *
  *  \param[in] buffer : data to send, modified to adapt flags.
  *  \param[in] length : number of bytes to send.
@@ -152,16 +158,16 @@ extern ReturnCode rfalIso15693PhyGetConfiguration(rfalIso15693PhyConfig_t* confi
  *
  *****************************************************************************
  */
-extern ReturnCode rfalIso15693VCDCode(uint8_t* buffer, uint16_t length, bool sendCrc, bool sendFlags, bool picopassMode,
-                                       uint16_t *subbit_total_length, uint16_t *offset,
-                                       uint8_t* outbuf, uint16_t outBufSize, uint16_t* actOutBufSize);
+extern ReturnCode iso15693VCDCode(uint8_t* buffer, uint16_t length, bool sendCrc, bool sendFlags, bool picopassMode,
+                   uint16_t *subbit_total_length, uint16_t *offset,
+                   uint8_t* outbuf, uint16_t outBufSize, uint16_t* actOutBufSize);
 
 
 /*! 
  *****************************************************************************
  *  \brief  Receive an ISO15693 compatible frame
  *
- *  This function receives an ISO15693 frame from the ST25R391x, decodes the frame
+ *  This function receives an ISO15693 frame from the ST25R3911, decodes the frame
  *  and writes the raw data to \a buffer.
  *  \note Buffer needs to be big enough to hold CRC also (+2 bytes)
  *
@@ -171,26 +177,26 @@ extern ReturnCode rfalIso15693VCDCode(uint8_t* buffer, uint16_t length, bool sen
  *  \param[in] outBufLen : Length of output buffer, should be approx twice the size of inBuf
  *  \param[out] outBufPos : The number of decoded bytes. Could be used in 
  *                          extended implementation to allow multiple calls
- *  \param[out] bitsBeforeCol : in case of ERR_RF_COLLISION this value holds the
+ *  \param[out] bitsBeforeCol : in case of ERR_COLLISION this value holds the
  *   number of bits in the current byte where the collision happened.
  *  \param[in] ignoreBits : number of bits in the beginning where collisions will be ignored
  *  \param[in] picopassMode :  if set to true, the decoding will be according to Picopass
  *
- *  \return ERR_RF_COLLISION : collision occured, data uncorrect
+ *  \return ERR_COLLISION : collision occured, data uncorrect
  *  \return ERR_CRC : CRC error, data uncorrect
  *  \return ERR_TIMEOUT : timeout waiting for data.
  *  \return ERR_NONE : No error.
  *
  *****************************************************************************
  */
-extern ReturnCode rfalIso15693VICCDecode(const uint8_t *inBuf,
-                                          uint16_t inBufLen,
-                                          uint8_t* outBuf,
-                                          uint16_t outBufLen,
-                                          uint16_t* outBufPos,
-                                          uint16_t* bitsBeforeCol,
-                                          uint16_t ignoreBits,
-                                          bool picopassMode );
+extern ReturnCode iso15693VICCDecode(const uint8_t *inBuf,
+                      uint16_t inBufLen,
+                      uint8_t* outBuf,
+                      uint16_t outBufLen,
+                      uint16_t* outBufPos,
+                      uint16_t* bitsBeforeCol,
+                      uint16_t ignoreBits,
+                      bool picopassMode );
 
 #endif /* RFAL_ISO_15693_2_H */
 

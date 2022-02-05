@@ -18,13 +18,13 @@
 #include "platform_common.h"
 
 /* Public defines ----------------------------------------------------- */
-#define SPI_SS_PIN              (GPIO_NUM_12)   // NFC
-#define SPI_MOSI_PIN            (GPIO_NUM_23)   // NFC
-#define SPI_MISO_PIN            (GPIO_NUM_19)   // NFC
-#define SPI_SCLK_PIN            (GPIO_NUM_18)   // NFC
+#define SPI_SS_PIN              (0)   // NFC
+#define SPI_MOSI_PIN            (0)   // NFC
+#define SPI_MISO_PIN            (0)   // NFC
+#define SPI_SCLK_PIN            (0)   // NFC
 
-#define IRQ_OUT_PIN             (GPIO_NUM_4)    // NFC
-#define IRQ_IN_PIN              (GPIO_NUM_21)   // NFC
+#define IRQ_OUT_PIN             (-1)    // NFC
+#define IRQ_IN_PIN              (-1)   // NFC
 
 /* Public variables --------------------------------------------------- */
 /* Public function prototypes ----------------------------------------- */
@@ -47,7 +47,7 @@ void bsp_init(void);
  * @attention     None
  * @return        None
  */
-void bsp_spi_transmit_receive(uint8_t *tx_data, uint8_t *rx_data, uint16_t len);
+void bsp_spi_transmit_receive(const uint8_t *tx_data, uint8_t *rx_data, uint16_t len);
 
 /**
  * @brief         Logging data

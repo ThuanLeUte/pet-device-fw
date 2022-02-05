@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 /*
  *      PROJECT:   ST25R391x firmware
@@ -50,7 +55,7 @@
  */
 
 #ifndef RFAL_FEATURE_NFCA
-    #define RFAL_FEATURE_NFCA   false    /* NFC-A module configuration missing. Disabled by default */
+    #error " RFAL: Module configuration missing. Please enable/disable NFC-A module by setting: RFAL_FEATURE_NFCA "
 #endif
 
 #if RFAL_FEATURE_NFCA
@@ -109,52 +114,23 @@ enum
 #define rfalNfcaCLn2SELCMD( cl )           (uint8_t)((uint8_t)(RFAL_NFCA_CMD_SEL_CL1) + (2U*(cl)))   /*!< Calculates SEL_CMD with the given cascade level   */
 #define rfalNfcaNfcidLen2CL( len )         ((len) / 5U)                                              /*!< Calculates cascade level by the NFCID length      */
 
+/*! Executes the given Tx method (f) and if a Timeout error is detected it retries (rt) times performing a delay of (dl) in between  */
+#define rfalNfcaTxRetry( r, f, rt, dl )   	                       \
+			{                                                      \
+				uint8_t rts = (uint8_t)(rt);                       \
+				do {						                       \
+					(r)=(f);                                       \
+					if (((rt)!=0U) && ((dl)!=0U)) {                \
+						platformDelay(dl);                         \
+					}                                              \
+				} while( ((rts--) != 0U) && ((r)==ERR_TIMEOUT) );  \
+			}
+
 /*
 ******************************************************************************
 * GLOBAL TYPES
 ******************************************************************************
 */
-
-/*! Colission Resolution states */
-typedef enum{
-    RFAL_NFCA_CR_IDLE,                     /*!< IDLE state                      */
-    RFAL_NFCA_CR_CL,                       /*!< New Cascading Level state       */
-    RFAL_NFCA_CR_SDD,                      /*!< Perform anticollsion state      */
-    RFAL_NFCA_CR_SEL,                      /*!< Perform CL Selection state      */
-    RFAL_NFCA_CR_DONE                      /*!< Collision Resolution done state */
-}rfalNfcaColResState;
-
-
-/*! Colission Resolution context */
-typedef struct{
-    uint8_t               devLimit;        /*!< Device limit to be used                                 */
-    rfalComplianceMode    compMode;        /*!< Compliancy mode to be used                              */
-    rfalNfcaListenDevice* nfcaDevList;     /*!< Location of the device list                             */
-    uint8_t*              devCnt;          /*!< Location of the device counter                          */
-    bool                  collPending;     /*!< Collision pending flag                                  */
-    
-    bool*                 collPend;         /*!< Location of collision pending flag (Single CR)          */
-    rfalNfcaSelReq        selReq;           /*!< SelReqused during anticollision (Single CR)             */
-    rfalNfcaSelRes*       selRes;           /*!< Location to place of the SEL_RES(SAK) (Single CR)       */
-    uint8_t*              nfcId1;           /*!< Location to place the NFCID1 (Single CR)                */
-    uint8_t*              nfcId1Len;        /*!< Location to place the NFCID1 length (Single CR)         */
-    uint8_t               cascadeLv;        /*!< Current Cascading Level (Single CR)                     */
-    rfalNfcaColResState   state;            /*!< Single Collision Resolution state (Single CR)           */
-    uint8_t               bytesTxRx;        /*!< TxRx bytes used during anticollision loop (Single CR)   */
-    uint8_t               bitsTxRx;         /*!< TxRx bits used during anticollision loop (Single CR)    */
-    uint16_t              rxLen;    
-    uint32_t              tmrFDT;           /*!< FDT timer used between SED_REQs  (Single CR)            */
-    uint8_t               retries;          /*!< Retries to be performed upon a timeout error (Single CR)*/
-    uint8_t               backtrackCnt;     /*!< Backtrack retries (Single CR)                           */
-    bool                  doBacktrack;      /*!< Backtrack flag (Single CR)                              */
-}rfalNfcaColResParams;
-
-
-/*! RFAL NFC-A instance */
-typedef struct{
-    rfalNfcaColResParams          CR;       /*!< Collision Resolution context                            */
-} rfalNfca;
-
 
 /*! SLP_REQ (HLTA) format   Digital 1.1  6.9.1 & Table 20 */
 typedef struct
@@ -162,22 +138,13 @@ typedef struct
     uint8_t      frame[RFAL_NFCA_SLP_REQ_LEN];  /*!< SLP:  0x50 0x00  */
 } rfalNfcaSlpReq;
 
-
-/*
-******************************************************************************
-* LOCAL VARIABLES
-******************************************************************************
-*/
-static rfalNfca gNfca;  /*!< RFAL NFC-A instance  */
-
 /*
 ******************************************************************************
 * LOCAL FUNCTION PROTOTYPES
 ******************************************************************************
 */
-static uint8_t    rfalNfcaCalculateBcc( const uint8_t* buf, uint8_t bufLen );
-static ReturnCode rfalNfcaPollerStartSingleCollisionResolution( uint8_t devLimit, bool *collPending, rfalNfcaSelRes *selRes, uint8_t *nfcId1, uint8_t *nfcId1Len );
-static ReturnCode rfalNfcaPollerGetSingleCollisionResolutionStatus( void );
+static uint8_t rfalNfcaCalculateBcc( const uint8_t* buf, uint8_t bufLen );
+
 
 /*
  ******************************************************************************
@@ -201,264 +168,6 @@ static uint8_t rfalNfcaCalculateBcc( const uint8_t* buf, uint8_t bufLen )
     return BCC;
 }
 
-/*******************************************************************************/
-static ReturnCode rfalNfcaPollerStartSingleCollisionResolution( uint8_t devLimit, bool *collPending, rfalNfcaSelRes *selRes, uint8_t *nfcId1, uint8_t *nfcId1Len )
-{
-    /* Check parameters */
-    if( (collPending == NULL) || (selRes == NULL) || (nfcId1 == NULL) || (nfcId1Len == NULL) )
-    {
-        return ERR_PARAM;
-    }
-    
-    /* Initialize output parameters */
-    *collPending = false;  /* Activity 1.1  9.3.4.6 */
-    *nfcId1Len   = 0;
-    ST_MEMSET( nfcId1, 0x00, RFAL_NFCA_CASCADE_3_UID_LEN );
-    
-    
-    /* Save parameters */
-    gNfca.CR.devLimit    = devLimit;
-    gNfca.CR.collPend    = collPending;
-    gNfca.CR.selRes      = selRes;
-    gNfca.CR.nfcId1      = nfcId1;
-    gNfca.CR.nfcId1Len   = nfcId1Len;
-
-    platformTimerDestroy( gNfca.CR.tmrFDT );
-    gNfca.CR.tmrFDT      = 0U;
-    gNfca.CR.retries     = RFAL_NFCA_N_RETRANS;
-    gNfca.CR.cascadeLv   = (uint8_t)RFAL_NFCA_SEL_CASCADE_L1;
-    gNfca.CR.state       = RFAL_NFCA_CR_CL;
-   
-    gNfca.CR.doBacktrack  = false;
-    gNfca.CR.backtrackCnt = 3U;
-    
-    return ERR_NONE;
-}
-
-
-/*******************************************************************************/
-static ReturnCode rfalNfcaPollerGetSingleCollisionResolutionStatus( void )
-{
-    ReturnCode ret;
-    uint8_t    collBit = 1U;  /* standards mandate or recommend collision bit to be set to One. */
-    
-    
-    /* Check if FDT timer is still running */
-    if( !platformTimerIsExpired( gNfca.CR.tmrFDT ) && (gNfca.CR.tmrFDT != 0U) )
-    {
-        return ERR_BUSY;
-    }
-    
-    /*******************************************************************************/
-    /* Go through all Cascade Levels     Activity 1.1  9.3.4 */    
-    if( gNfca.CR.cascadeLv > (uint8_t)RFAL_NFCA_SEL_CASCADE_L3 )
-    {
-        return ERR_INTERNAL;
-    }
-    
-    switch( gNfca.CR.state )
-    {
-        /*******************************************************************************/
-        case RFAL_NFCA_CR_CL:
-            
-            /* Initialize the SDD_REQ to send for the new cascade level */
-            ST_MEMSET( (uint8_t*)&gNfca.CR.selReq, 0x00, sizeof(rfalNfcaSelReq) );
-        
-            gNfca.CR.bytesTxRx = RFAL_NFCA_SDD_REQ_LEN;
-            gNfca.CR.bitsTxRx  = 0U;
-            gNfca.CR.state     = RFAL_NFCA_CR_SDD;
-        
-            /* fall through */
-        
-        /*******************************************************************************/
-        case RFAL_NFCA_CR_SDD:   /*  PRQA S 2003 # MISRA 16.3 - Intentional fall through */
-            
-            /* Calculate SEL_CMD and SEL_PAR with the bytes/bits to be sent */
-            gNfca.CR.selReq.selCmd = rfalNfcaCLn2SELCMD( gNfca.CR.cascadeLv );
-            gNfca.CR.selReq.selPar = rfalNfcaSelPar(gNfca.CR.bytesTxRx, gNfca.CR.bitsTxRx);
-        
-            /* Send SDD_REQ (Anticollision frame) */
-            ret = rfalISO14443ATransceiveAnticollisionFrame( (uint8_t*)&gNfca.CR.selReq, &gNfca.CR.bytesTxRx, &gNfca.CR.bitsTxRx, &gNfca.CR.rxLen, RFAL_NFCA_FDTMIN );
-
-            /* Retry upon timeout  EMVCo 2.6  9.6.1.3 */
-            if( (ret == ERR_TIMEOUT) && (gNfca.CR.devLimit==0U) && (gNfca.CR.retries != 0U) )
-            {
-                gNfca.CR.retries--;
-                platformTimerDestroy( gNfca.CR.tmrFDT );
-                gNfca.CR.tmrFDT = platformTimerCreate( RFAL_NFCA_T_RETRANS );
-                break;
-            }
-            
-            /* Covert rxLen into bytes */
-            gNfca.CR.rxLen = rfalConvBitsToBytes( gNfca.CR.rxLen );
-            
-            
-            if( (ret == ERR_TIMEOUT) && (gNfca.CR.backtrackCnt != 0U) && (!gNfca.CR.doBacktrack)
-                && !((RFAL_NFCA_SDD_REQ_LEN == gNfca.CR.bytesTxRx) && (0U == gNfca.CR.bitsTxRx))     )
-            {
-                /* In multiple card scenarios it may always happen that some 
-                 * collisions of a weaker tag go unnoticed. If then a later 
-                 * collision is recognized and the strong tag has a 0 at the 
-                 * collision position then no tag will respond. Catch this 
-                 * corner case and then try with the bit being sent as zero. */
-                rfalNfcaSensRes sensRes;
-                ret = ERR_RF_COLLISION;
-                rfalNfcaPollerCheckPresence( RFAL_14443A_SHORTFRAME_CMD_REQA, &sensRes );
-                /* Algorithm below does a post-increment, decrement to go back to current position */
-                if (0U == gNfca.CR.bitsTxRx)
-                {
-                    gNfca.CR.bitsTxRx = 7;
-                    gNfca.CR.bytesTxRx--;
-                }
-                else
-                {
-                    gNfca.CR.bitsTxRx--;
-                }
-                collBit = (uint8_t)( ((uint8_t*)&gNfca.CR.selReq)[gNfca.CR.bytesTxRx] & (1U << gNfca.CR.bitsTxRx) );
-                collBit = (uint8_t)((0U==collBit)?1U:0U); // invert the collision bit
-                gNfca.CR.doBacktrack = true;
-                gNfca.CR.backtrackCnt--;
-            }
-            else
-            {
-                gNfca.CR.doBacktrack = false;
-            }
-
-            if( ret == ERR_RF_COLLISION )
-            {
-                /* Check received length */
-                if( (gNfca.CR.bytesTxRx + ((gNfca.CR.bitsTxRx != 0U) ? 1U : 0U)) > (RFAL_NFCA_SDD_RES_LEN + RFAL_NFCA_SDD_REQ_LEN) )
-                {
-                    return ERR_PROTO;
-                }
-
-                if( ((gNfca.CR.bytesTxRx + ((gNfca.CR.bitsTxRx != 0U) ? 1U : 0U)) > (RFAL_NFCA_CASCADE_1_UID_LEN + RFAL_NFCA_SDD_REQ_LEN)) && (gNfca.CR.backtrackCnt != 0U) )
-                { /* Collision in BCC: Anticollide only UID part */
-                    gNfca.CR.backtrackCnt--;
-                    gNfca.CR.bytesTxRx = RFAL_NFCA_CASCADE_1_UID_LEN + RFAL_NFCA_SDD_REQ_LEN - 1U;
-                    gNfca.CR.bitsTxRx = 7;
-                    collBit = (uint8_t)( ((uint8_t*)&gNfca.CR.selReq)[gNfca.CR.bytesTxRx] & (1U << gNfca.CR.bitsTxRx) ); /* Not a real collision, extract the actual bit for the subsequent code */
-                }
-                
-                if( (gNfca.CR.devLimit == 0U) && !(*gNfca.CR.collPend) )
-                {   
-                    /* Activity 1.0 & 1.1  9.3.4.12: If CON_DEVICES_LIMIT has a value of 0, then 
-                     * NFC Forum Device is configured to perform collision detection only       */
-                    *gNfca.CR.collPend = true;
-                    return ERR_IGNORE;
-                }
-                
-                *gNfca.CR.collPend = true;
-                
-                /* Set and select the collision bit, with the number of bytes/bits successfully TxRx */
-                if (collBit != 0U)
-                {
-                    ((uint8_t*)&gNfca.CR.selReq)[gNfca.CR.bytesTxRx] = (uint8_t)(((uint8_t*)&gNfca.CR.selReq)[gNfca.CR.bytesTxRx] | (1U << gNfca.CR.bitsTxRx));   /* MISRA 10.3 */
-                }
-                else
-                {
-                    ((uint8_t*)&gNfca.CR.selReq)[gNfca.CR.bytesTxRx] = (uint8_t)(((uint8_t*)&gNfca.CR.selReq)[gNfca.CR.bytesTxRx] & ~(1U << gNfca.CR.bitsTxRx));  /* MISRA 10.3 */
-                }
-
-                gNfca.CR.bitsTxRx++;
-                
-                /* Check if number of bits form a byte */
-                if( gNfca.CR.bitsTxRx == RFAL_BITS_IN_BYTE )
-                {
-                    gNfca.CR.bitsTxRx = 0;
-                    gNfca.CR.bytesTxRx++;
-                }
-                break;
-            }
-            
-            /*******************************************************************************/
-            /* Check if Collision loop has failed */
-            if( ret != ERR_NONE )
-            {
-                return ret;
-            }
-            
-            
-            /* If collisions are to be reported check whether the response is complete */
-            if( (gNfca.CR.devLimit == 0U) && (gNfca.CR.rxLen != sizeof(rfalNfcaSddRes)) )
-            {
-                return ERR_PROTO;
-            }
-            
-            /* Check if the received BCC match */
-            if( gNfca.CR.selReq.bcc != rfalNfcaCalculateBcc( gNfca.CR.selReq.nfcid1, RFAL_NFCA_CASCADE_1_UID_LEN ) )
-            {
-                return ERR_PROTO;
-            }
-            
-            /*******************************************************************************/
-            /* Anticollision OK, Select this Cascade Level */
-            gNfca.CR.selReq.selPar = RFAL_NFCA_SEL_SELPAR;
-            
-            gNfca.CR.retries = RFAL_NFCA_N_RETRANS;
-            gNfca.CR.state   = RFAL_NFCA_CR_SEL;
-            break;
-            
-        /*******************************************************************************/
-        case RFAL_NFCA_CR_SEL:
-            
-            /* Send SEL_REQ (Select command) - Retry upon timeout  EMVCo 2.6  9.6.1.3 */
-            ret = rfalTransceiveBlockingTxRx( (uint8_t*)&gNfca.CR.selReq, sizeof(rfalNfcaSelReq), (uint8_t*)gNfca.CR.selRes, sizeof(rfalNfcaSelRes), &gNfca.CR.rxLen, RFAL_TXRX_FLAGS_DEFAULT, RFAL_NFCA_FDTMIN );
-                
-            /* Retry upon timeout  EMVCo 2.6  9.6.1.3 */
-            if( (ret == ERR_TIMEOUT) && (gNfca.CR.devLimit==0U) && (gNfca.CR.retries != 0U) )
-            {
-                gNfca.CR.retries--;
-                platformTimerDestroy( gNfca.CR.tmrFDT );
-                gNfca.CR.tmrFDT = platformTimerCreate( RFAL_NFCA_T_RETRANS );
-                break;
-            }
-            
-            if( ret != ERR_NONE )
-            {
-                return ret;
-            }
-            
-            /* Ensure proper response length */
-            if( gNfca.CR.rxLen != sizeof(rfalNfcaSelRes) )
-            {
-                return ERR_PROTO;
-            }
-            
-            /*******************************************************************************/
-            /* Check cascade byte, if cascade tag then go next cascade level */
-            if( *gNfca.CR.selReq.nfcid1 == RFAL_NFCA_SDD_CT )
-            {
-                /* Cascade Tag present, store nfcid1 bytes (excluding cascade tag) and continue for next CL */
-                ST_MEMCPY( &gNfca.CR.nfcId1[*gNfca.CR.nfcId1Len], &((uint8_t*)&gNfca.CR.selReq.nfcid1)[RFAL_NFCA_SDD_CT_LEN], (RFAL_NFCA_CASCADE_1_UID_LEN - RFAL_NFCA_SDD_CT_LEN) );
-                *gNfca.CR.nfcId1Len += (RFAL_NFCA_CASCADE_1_UID_LEN - RFAL_NFCA_SDD_CT_LEN);
-                
-                /* Go to next cascade level */
-                gNfca.CR.state = RFAL_NFCA_CR_CL;
-                gNfca.CR.cascadeLv++;
-            }
-            else
-            {
-                /* UID Selection complete, Stop Cascade Level loop */
-                ST_MEMCPY( &gNfca.CR.nfcId1[*gNfca.CR.nfcId1Len], (uint8_t*)&gNfca.CR.selReq.nfcid1, RFAL_NFCA_CASCADE_1_UID_LEN );
-                *gNfca.CR.nfcId1Len += RFAL_NFCA_CASCADE_1_UID_LEN;
-                
-                gNfca.CR.state = RFAL_NFCA_CR_DONE;
-                break;                             /* Only flag operation complete on the next execution */
-            }
-            break;
-        
-        /*******************************************************************************/
-        case RFAL_NFCA_CR_DONE:
-            return ERR_NONE;
-        
-        /*******************************************************************************/
-        default:
-            return ERR_WRONG_STATE;
-    }
-    return ERR_BUSY;
-}
-
 /*
 ******************************************************************************
 * GLOBAL FUNCTIONS
@@ -471,7 +180,7 @@ ReturnCode rfalNfcaPollerInitialize( void )
     ReturnCode ret;
     
     EXIT_ON_ERR( ret, rfalSetMode( RFAL_MODE_POLL_NFCA, RFAL_BR_106, RFAL_BR_106 ) );
-    rfalSetErrorHandling( RFAL_ERRORHANDLING_NONE );
+    rfalSetErrorHandling( RFAL_ERRORHANDLING_NFC );
     
     rfalSetGT( RFAL_GT_NFCA );
     rfalSetFDTListen( RFAL_FDT_LISTEN_NFCA_POLLER );
@@ -510,29 +219,202 @@ ReturnCode rfalNfcaPollerTechnologyDetection( rfalComplianceMode compMode, rfalN
     /* Send SLP_REQ as  Activity 1.1  9.2.3.6 and EMVCo 2.6  9.2.1.3 */
     if( compMode != RFAL_COMPLIANCE_MODE_ISO)
     {
-        rfalNfcaPollerSleep();
+        EXIT_ON_ERR( ret, rfalNfcaPollerSleep() );
     }
     return ERR_NONE;
 }
 
-
 /*******************************************************************************/
 ReturnCode rfalNfcaPollerSingleCollisionResolution( uint8_t devLimit, bool *collPending, rfalNfcaSelRes *selRes, uint8_t *nfcId1, uint8_t *nfcId1Len )
 {
+    uint8_t         i;
+    ReturnCode      ret;
+    rfalNfcaSelReq  selReq;
+    uint16_t        bytesRx;
+    uint8_t         bytesTxRx;
+    uint8_t         bitsTxRx;
+    bool            doBacktrack = false;
+    uint8_t         backtrackCnt = 3;
     
-    ReturnCode ret;
+    /* Check parameters */
+    if( (collPending == NULL) || (selRes == NULL) || (nfcId1 == NULL) || (nfcId1Len == NULL) )
+    {
+        return ERR_PARAM;
+    }
     
-    EXIT_ON_ERR( ret, rfalNfcaPollerStartSingleCollisionResolution( devLimit, collPending, selRes, nfcId1, nfcId1Len ) );
-    rfalRunBlocking( ret, rfalNfcaPollerGetSingleCollisionResolutionStatus() );
+    /* Initialize output parameters */
+    *collPending = false;  /* Activity 1.1  9.3.4.6 */
+    *nfcId1Len   = 0;
+    ST_MEMSET( nfcId1, 0x00, RFAL_NFCA_CASCADE_3_UID_LEN );
     
-    return ret;
+    /*******************************************************************************/
+    /* Go through all Cascade Levels     Activity 1.1  9.3.4 */
+    for( i = (uint8_t)RFAL_NFCA_SEL_CASCADE_L1; i <= (uint8_t)RFAL_NFCA_SEL_CASCADE_L3; i++)
+    {
+        /* Initialize the SDD_REQ to send for the new cascade level */
+        ST_MEMSET( (uint8_t*)&selReq, 0x00, sizeof(rfalNfcaSelReq) );
+        selReq.selCmd = rfalNfcaCLn2SELCMD(i);
+    
+        bytesTxRx    = RFAL_NFCA_SDD_REQ_LEN;
+        bitsTxRx     = 0;
+        
+        /*******************************************************************************/
+        /* Go through Collision loop */
+        do
+        {
+            uint8_t         collBit = 1; /* standards mandate or recommend collision bit to be set to One. */
+            /* Calculate SEL_PAR with the bytes/bits to be sent */
+            selReq.selPar = rfalNfcaSelPar(bytesTxRx, bitsTxRx);
+    
+            /* Send SDD_REQ (Anticollision frame) - Retry upon timeout  EMVCo 2.6  9.6.1.3 */
+            rfalNfcaTxRetry( ret, rfalISO14443ATransceiveAnticollisionFrame( (uint8_t*)&selReq, &bytesTxRx, &bitsTxRx, &bytesRx, RFAL_NFCA_FDTMIN ), ((devLimit==0U)?RFAL_NFCA_N_RETRANS:0U), RFAL_NFCA_T_RETRANS );
+            
+            bytesRx = rfalConvBitsToBytes(bytesRx);
+            
+            if ((ret == ERR_TIMEOUT) 
+                && (backtrackCnt != 0U) && !doBacktrack
+                && !((RFAL_NFCA_SDD_REQ_LEN==bytesTxRx) && (0U==bitsTxRx)))
+            { 
+                /* In multiple card scenarios it may always happen that some 
+                 * collisions of a weaker tag go unnoticed. If then a later 
+                 * collision is recognized and the strong tag has a 0 at the 
+                 * collision position then no tag will respond. Catch this 
+                 * corner case and then try with the bit being sent as zero. */
+                rfalNfcaSensRes sensRes;
+                ret = ERR_RF_COLLISION;
+                rfalNfcaPollerCheckPresence( RFAL_14443A_SHORTFRAME_CMD_REQA, &sensRes );
+                /* Algorithm below does a post-increment, decrement to go back to current position */
+                if (0U == bitsTxRx)
+                {
+                    bitsTxRx = 7;
+                    bytesTxRx--;
+                }
+                else
+                {
+                    bitsTxRx--;
+                }
+                collBit = (uint8_t)( ((uint8_t*)&selReq)[bytesTxRx] & (1U << bitsTxRx) );
+                collBit = (uint8_t)((0U==collBit)?1U:0U); // invert the collision bit
+                doBacktrack = true;
+                backtrackCnt--;
+            }
+            else
+            {
+                doBacktrack = false;
+            }
+
+            if( ret == ERR_RF_COLLISION )
+            {
+                /* Check received length */
+                if( (bytesTxRx + ((bitsTxRx != 0U) ? 1U : 0U)) > (RFAL_NFCA_SDD_RES_LEN + RFAL_NFCA_SDD_REQ_LEN) )
+                {
+                    return ERR_PROTO;
+                }
+
+                if( ((bytesTxRx + ((bitsTxRx != 0U) ? 1U : 0U)) > (RFAL_NFCA_CASCADE_1_UID_LEN + RFAL_NFCA_SDD_REQ_LEN)) && (backtrackCnt != 0U) )
+                { /* Collision in BCC: Anticollide only UID part */
+                    backtrackCnt--;
+                    bytesTxRx = RFAL_NFCA_CASCADE_1_UID_LEN + RFAL_NFCA_SDD_REQ_LEN - 1U;
+                    bitsTxRx = 7;
+                    collBit = (uint8_t)( ((uint8_t*)&selReq)[bytesTxRx] & (1U << bitsTxRx) ); /* Not a real collision, extract the actual bit for the subsequent code */
+                }
+                
+                if( (devLimit == 0U) && !(*collPending) )
+                {   
+                    /* Activity 1.0 & 1.1  9.3.4.12: If CON_DEVICES_LIMIT has a value of 0, then 
+                     * NFC Forum Device is configured to perform collision detection only       */
+                    *collPending = true;
+                    return ERR_IGNORE;
+                }
+                
+                *collPending = true;
+                
+                /* Set and select the collision bit, with the number of bytes/bits successfully TxRx */
+                if (collBit != 0U)
+                {
+                    ((uint8_t*)&selReq)[bytesTxRx] = (uint8_t)(((uint8_t*)&selReq)[bytesTxRx] | (1U << bitsTxRx));   /* MISRA 10.3 */
+                }
+                else
+                {
+                    ((uint8_t*)&selReq)[bytesTxRx] = (uint8_t)(((uint8_t*)&selReq)[bytesTxRx] & ~(1U << bitsTxRx));  /* MISRA 10.3 */
+                }
+
+                bitsTxRx++;
+                
+                /* Check if number of bits form a byte */
+                if( bitsTxRx == RFAL_BITS_IN_BYTE )
+                {
+                    bitsTxRx = 0;
+                    bytesTxRx++;
+                }
+            }
+        }while (ret == ERR_RF_COLLISION);
+        
+        
+        /*******************************************************************************/
+        /* Check if Collision loop has failed */
+        if( ret != ERR_NONE )
+        {
+            return ret;
+        }
+        
+        
+        /* If collisions are to be reported check whether the response is complete */
+        if( (devLimit == 0U) && (bytesRx != sizeof(rfalNfcaSddRes)) )
+        {
+            return ERR_PROTO;
+        }
+        
+        /* Check if the received BCC match */
+        if( selReq.bcc != rfalNfcaCalculateBcc( selReq.nfcid1, RFAL_NFCA_CASCADE_1_UID_LEN ) )
+        {
+            return ERR_PROTO;
+        }
+        
+        /*******************************************************************************/
+        /* Anticollision OK, Select this Cascade Level */
+        selReq.selPar = RFAL_NFCA_SEL_SELPAR;
+        
+        /* Send SEL_REQ (Select command) - Retry upon timeout  EMVCo 2.6  9.6.1.3 */
+        rfalNfcaTxRetry( ret, rfalTransceiveBlockingTxRx( (uint8_t*)&selReq, sizeof(rfalNfcaSelReq), (uint8_t*)selRes, sizeof(rfalNfcaSelRes), &bytesRx, RFAL_TXRX_FLAGS_DEFAULT, RFAL_NFCA_FDTMIN ), ((devLimit==0U)?RFAL_NFCA_N_RETRANS:0U), RFAL_NFCA_T_RETRANS );
+        
+        if( ret != ERR_NONE )
+        {
+            return ret;
+        }
+
+        
+        /* Ensure proper response length */
+        if( bytesRx != sizeof(rfalNfcaSelRes) )
+        {
+            return ERR_PROTO;
+        }
+        
+        /*******************************************************************************/
+        /* Check cascade byte, if cascade tag then go next cascade level */
+        if( (ret == ERR_NONE) && (*selReq.nfcid1 == RFAL_NFCA_SDD_CT) )
+        {
+            /* Cascade Tag present, store nfcid1 bytes (excluding cascade tag) and continue for next CL */
+            ST_MEMCPY( &nfcId1[*nfcId1Len], &((uint8_t*)&selReq.nfcid1)[RFAL_NFCA_SDD_CT_LEN], (RFAL_NFCA_CASCADE_1_UID_LEN - RFAL_NFCA_SDD_CT_LEN) );
+            *nfcId1Len += (RFAL_NFCA_CASCADE_1_UID_LEN - RFAL_NFCA_SDD_CT_LEN);
+        }
+        else
+        {
+            /* UID Selection complete, Stop Cascade Level loop */
+            ST_MEMCPY( &nfcId1[*nfcId1Len], (uint8_t*)&selReq.nfcid1, RFAL_NFCA_CASCADE_1_UID_LEN );
+            *nfcId1Len += RFAL_NFCA_CASCADE_1_UID_LEN;
+            return ERR_NONE;
+        }
+    }
+    return ERR_INTERNAL;
 }
 
 
 /*******************************************************************************/
-ReturnCode rfalNfcaPollerStartFullCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcaListenDevice *nfcaDevList, uint8_t *devCnt )
+ReturnCode rfalNfcaPollerFullCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcaListenDevice *nfcaDevList, uint8_t *devCnt )
 {
     ReturnCode      ret;
+    bool            collPending;
     rfalNfcaSensRes sensRes;
     uint16_t        rcvLen;
     
@@ -564,6 +446,29 @@ ReturnCode rfalNfcaPollerStartFullCollisionResolution( rfalComplianceMode compMo
         }
     }
     
+
+    #if RFAL_FEATURE_T1T
+    /*******************************************************************************/
+    /* Only check for T1T if previous SENS_RES was received without a transmission  *
+     * error. When collisions occur bits in the SENS_RES may look like a T1T        */
+    /* If T1T Anticollision is not supported  Activity 1.1  9.3.4.3 */
+    if( rfalNfcaIsSensResT1T( &nfcaDevList->sensRes ) && (devLimit != 0U) && (ret == ERR_NONE) && (compMode != RFAL_COMPLIANCE_MODE_EMV) )
+    {
+        /* RID_REQ shall be performed with rfalT1TPollerRid()    Activity 1.1  9.3.4.24 */
+        rfalT1TPollerInitialize();
+        EXIT_ON_ERR( ret, rfalT1TPollerRid( &nfcaDevList->ridRes ) );
+        
+        /* T1T doesn't support Anticollision */
+        *devCnt = 1;
+        nfcaDevList->isSleep   = false;
+        nfcaDevList->type      = RFAL_NFCA_T1T;
+        nfcaDevList->nfcId1Len = RFAL_NFCA_CASCADE_1_UID_LEN;
+        ST_MEMCPY( &nfcaDevList->nfcId1, &nfcaDevList->ridRes.uid, RFAL_NFCA_CASCADE_1_UID_LEN );
+        
+        return ERR_NONE;
+    }    
+    #endif /* RFAL_FEATURE_T1T */
+    
     /*******************************************************************************/
     /* Store the SENS_RES from Technology Detection or from WUPA */ 
     sensRes = nfcaDevList->sensRes;
@@ -577,173 +482,51 @@ ReturnCode rfalNfcaPollerStartFullCollisionResolution( rfalComplianceMode compMo
      * When only one device is detected it's not woken up then we'll have no SENS_RES (ATQA) */
     nfcaDevList->sensRes = sensRes;
     
-    /* Save parameters */
-    gNfca.CR.devCnt      = devCnt;
-    gNfca.CR.devLimit    = devLimit;
-    gNfca.CR.nfcaDevList = nfcaDevList;
-    gNfca.CR.compMode    = compMode;
-    
-    
-    #if RFAL_FEATURE_T1T
-    /*******************************************************************************/
-    /* Only check for T1T if previous SENS_RES was received without a transmission  *
-     * error. When collisions occur bits in the SENS_RES may look like a T1T        */
-    /* If T1T Anticollision is not supported  Activity 1.1  9.3.4.3 */
-    if( rfalNfcaIsSensResT1T( &nfcaDevList->sensRes ) && (devLimit != 0U) && (ret == ERR_NONE) && (compMode != RFAL_COMPLIANCE_MODE_EMV) )
-    {
-        /* RID_REQ shall be performed              Activity 1.1  9.3.4.24 */
-        rfalT1TPollerInitialize();
-        EXIT_ON_ERR( ret, rfalT1TPollerRid( &nfcaDevList->ridRes ) );
-        
-        *devCnt = 1U;
-        nfcaDevList->isSleep   = false;
-        nfcaDevList->type      = RFAL_NFCA_T1T;
-        nfcaDevList->nfcId1Len = RFAL_NFCA_CASCADE_1_UID_LEN;
-        ST_MEMCPY( &nfcaDevList->nfcId1, &nfcaDevList->ridRes.uid, RFAL_NFCA_CASCADE_1_UID_LEN );
-        
-        return ERR_NONE;
-    }
-    #endif /* RFAL_FEATURE_T1T */
-    
-    return rfalNfcaPollerStartSingleCollisionResolution( devLimit, &gNfca.CR.collPending, &nfcaDevList->selRes, (uint8_t*)&nfcaDevList->nfcId1, &nfcaDevList->nfcId1Len );
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalNfcaPollerGetFullCollisionResolutionStatus( void )
-{
-    ReturnCode ret;
-    uint8_t    newDevType;
-    
-    if( (gNfca.CR.nfcaDevList == NULL) || (gNfca.CR.devCnt == NULL) )
-    {
-        return ERR_WRONG_STATE;
-    }
     
     /*******************************************************************************/
-    /* Check whether a T1T has already been detected */
-    if( rfalNfcaIsSensResT1T( &gNfca.CR.nfcaDevList->sensRes ) && (gNfca.CR.nfcaDevList->type == RFAL_NFCA_T1T) )
+    do
     {
-        /* T1T doesn't support Anticollision */
-        return ERR_NONE;
-    }
-    
-    
-    /*******************************************************************************/
-    EXIT_ON_ERR( ret, rfalNfcaPollerGetSingleCollisionResolutionStatus() );
-
-    /* Assign Listen Device */
-    newDevType = ((uint8_t)gNfca.CR.nfcaDevList[*gNfca.CR.devCnt].selRes.sak) & RFAL_NFCA_SEL_RES_CONF_MASK;  /* MISRA 10.8 */
-    /* PRQA S 4342 1 # MISRA 10.5 - Guaranteed that no invalid enum values are created: see guard_eq_RFAL_NFCA_T2T, .... */
-    gNfca.CR.nfcaDevList[*gNfca.CR.devCnt].type    = (rfalNfcaListenDeviceType) newDevType;
-    gNfca.CR.nfcaDevList[*gNfca.CR.devCnt].isSleep = false;
-    (*gNfca.CR.devCnt)++;
-
-    
-    /* If a collision was detected and device counter is lower than limit  Activity 1.1  9.3.4.21 */
-    if( (*gNfca.CR.devCnt < gNfca.CR.devLimit) && (gNfca.CR.collPending) )
-    {
-        /* Put this device to Sleep  Activity 1.1  9.3.4.22 */
-        rfalNfcaPollerSleep();
-        gNfca.CR.nfcaDevList[(*gNfca.CR.devCnt - 1U)].isSleep = true;
+        uint8_t newDeviceType;
         
+        EXIT_ON_ERR( ret, rfalNfcaPollerSingleCollisionResolution( devLimit, &collPending, &nfcaDevList[*devCnt].selRes, (uint8_t*)&nfcaDevList[*devCnt].nfcId1, (uint8_t*)&nfcaDevList[*devCnt].nfcId1Len ) );
         
-        /* Send a new SENS_REQ to check for other cards  Activity 1.1  9.3.4.23 */
-        ret = rfalNfcaPollerCheckPresence( RFAL_14443A_SHORTFRAME_CMD_REQA, &gNfca.CR.nfcaDevList[*gNfca.CR.devCnt].sensRes );
-        if( ret == ERR_TIMEOUT )
+        /* Assign Listen Device */
+        newDeviceType = ((uint8_t)nfcaDevList[*devCnt].selRes.sak) & RFAL_NFCA_SEL_RES_CONF_MASK;  /* MISRA 10.8 */
+        /* PRQA S 4342 1 # MISRA 10.5 - Guaranteed that no invalid enum values are created: see guard_eq_RFAL_NFCA_T2T, .... */
+        nfcaDevList[*devCnt].type    = (rfalNfcaListenDeviceType) (newDeviceType);
+        nfcaDevList[*devCnt].isSleep = false;
+        (*devCnt)++;
+
+        
+        /* If a collision was detected and device counter is lower than limit  Activity 1.1  9.3.4.21 */
+        if( (*devCnt < devLimit) && ((collPending) || (compMode != RFAL_COMPLIANCE_MODE_ISO) ) )
         {
-            /* No more devices found, exit */
-            gNfca.CR.collPending = false;
+            /* Put this device to Sleep  Activity 1.1  9.3.4.22 */
+            EXIT_ON_ERR( ret, rfalNfcaPollerSleep() );
+            nfcaDevList[(*devCnt - 1U)].isSleep = true;
+            
+            
+            /* Send a new SENS_REQ to check for other cards  Activity 1.1  9.3.4.23 */
+            ret = rfalNfcaPollerCheckPresence( RFAL_14443A_SHORTFRAME_CMD_REQA, &nfcaDevList[*devCnt].sensRes );
+            if( ret == ERR_TIMEOUT )
+            {
+                /* No more devices found, exit */
+                collPending = false;
+            }
+            else
+            {
+                /* Another device found, continue loop */
+                collPending = true;
+            }
         }
         else
         {
-            /* Another device found, continue loop */
-            gNfca.CR.collPending = true;
+            /* Exit loop */
+            collPending = false;
         }
-    }
-    else
-    {
-        /* Exit loop */
-        gNfca.CR.collPending = false;
-    }
-        
-    
-    /*******************************************************************************/
-    /* Check if collision resolution shall continue */
-    if( (*gNfca.CR.devCnt < gNfca.CR.devLimit) && (gNfca.CR.collPending) )
-    {
-        EXIT_ON_ERR( ret, rfalNfcaPollerStartSingleCollisionResolution(  gNfca.CR.devLimit, 
-                                                                         &gNfca.CR.collPending, 
-                                                                         &gNfca.CR.nfcaDevList[*gNfca.CR.devCnt].selRes, 
-                                                                         (uint8_t*)&gNfca.CR.nfcaDevList[*gNfca.CR.devCnt].nfcId1, 
-                                                                         &gNfca.CR.nfcaDevList[*gNfca.CR.devCnt].nfcId1Len ) );
-    
-        return ERR_BUSY;
-    }
+    }while( (*devCnt < devLimit) && (collPending) );
     
     return ERR_NONE;
-}
-
-
-/*******************************************************************************/
-ReturnCode rfalNfcaPollerFullCollisionResolution( rfalComplianceMode compMode, uint8_t devLimit, rfalNfcaListenDevice *nfcaDevList, uint8_t *devCnt )
-{
-    ReturnCode ret;
-    
-    EXIT_ON_ERR( ret, rfalNfcaPollerStartFullCollisionResolution( compMode, devLimit, nfcaDevList, devCnt ) );
-    rfalRunBlocking( ret, rfalNfcaPollerGetFullCollisionResolutionStatus() );
-    
-    return ret;
-}
-
-ReturnCode rfalNfcaPollerSleepFullCollisionResolution( uint8_t devLimit, rfalNfcaListenDevice *nfcaDevList, uint8_t *devCnt )
-{
-    bool       firstRound;
-    uint8_t    tmpDevCnt;
-    ReturnCode ret;
-
-
-    if( (nfcaDevList == NULL) || (devCnt == NULL) )
-    {
-        return ERR_PARAM;
-    }
-
-    /* Only use ALL_REQ (WUPA) on the first round */
-    firstRound = true;  
-    *devCnt    = 0;
-    
-    
-    /* Perform collision resolution until no new device is found */
-    do
-    {
-        tmpDevCnt = 0;
-        ret = rfalNfcaPollerFullCollisionResolution( (firstRound ? RFAL_COMPLIANCE_MODE_NFC : RFAL_COMPLIANCE_MODE_ISO), (devLimit - *devCnt), &nfcaDevList[*devCnt], &tmpDevCnt );
-
-        if( (ret == ERR_NONE) && (tmpDevCnt > 0U) )
-        {
-            *devCnt += tmpDevCnt;
-
-            /* Check whether to seacrh for more devices */
-            if( *devCnt < devLimit )
-            {
-                /* Set last found device to sleep (all others are slept already) */
-                rfalNfcaPollerSleep();
-                nfcaDevList[((*devCnt)-1U)].isSleep = true;
-                
-                /* Check if any other device is present */
-                ret = rfalNfcaPollerCheckPresence( RFAL_14443A_SHORTFRAME_CMD_REQA, &nfcaDevList[*devCnt].sensRes );
-                if( ret == ERR_NONE )
-                {
-                    firstRound = false;
-                    continue;
-                }
-            }
-        }
-        break;
-    }
-    while( true );
-
-    return ((*devCnt > 0U) ? ERR_NONE : ret);
 }
 
 
@@ -810,18 +593,19 @@ ReturnCode rfalNfcaPollerSelect( const uint8_t *nfcid1, uint8_t nfcidLen, rfalNf
 /*******************************************************************************/
 ReturnCode rfalNfcaPollerSleep( void )
 {
+    ReturnCode     ret;
     rfalNfcaSlpReq slpReq;
     uint8_t        rxBuf;    /* dummy buffer, just to perform Rx */
     
     slpReq.frame[RFAL_NFCA_SLP_CMD_POS]   = RFAL_NFCA_SLP_CMD;
     slpReq.frame[RFAL_NFCA_SLP_BYTE2_POS] = RFAL_NFCA_SLP_BYTE2;
     
-    rfalTransceiveBlockingTxRx( (uint8_t*)&slpReq, sizeof(rfalNfcaSlpReq), &rxBuf, sizeof(rxBuf), NULL, RFAL_TXRX_FLAGS_DEFAULT, RFAL_NFCA_SLP_FWT );
-        
-    /* ISO14443-3 6.4.3  HLTA - If PICC responds with any modulation during 1 ms this response shall be interpreted as not acknowledge 
-       Digital 2.0  6.9.2.1 & EMVCo 3.0  5.6.2.1 - consider the HLTA command always acknowledged
-       No check to be compliant with NFC and EMVCo, and to improve interoprability (Kovio RFID Tag)
-    */
+    /* ISO14443-3 6.4.3  HLTA - If PICC responds with any modulation during 1 ms this response shall be interpreted as not acknowledge */    
+    ret = rfalTransceiveBlockingTxRx( (uint8_t*)&slpReq, sizeof(rfalNfcaSlpReq), &rxBuf, sizeof(rxBuf), NULL, RFAL_TXRX_FLAGS_DEFAULT, RFAL_NFCA_SLP_FWT );
+    if( ret != ERR_TIMEOUT )
+    {
+        return ret;
+    }
     
     return ERR_NONE;
 }

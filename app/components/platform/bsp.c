@@ -12,6 +12,8 @@
 
 /* Includes ----------------------------------------------------------------- */
 #include "bsp.h"
+#include "platform_common.h"
+#include "bsp_io_11.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define MAX_HEX_STR           (4)
@@ -27,16 +29,18 @@ static spi_device_handle_t  m_spi_hdl;
 static inline void m_bsp_nvs_init(void);
 static inline void m_bsp_spiffs_init(void);
 static inline void bsp_spi_init(void);
+static inline void bsp_gpio_init(void);
 
 /* Function definitions ----------------------------------------------------- */
 void bsp_init(void)
 {
   m_bsp_nvs_init();
   m_bsp_spiffs_init();
+  bsp_gpio_init();
   bsp_spi_init();
 }
 
-void bsp_spi_transmit_receive(uint8_t *tx_data, uint8_t *rx_data, uint16_t len)
+void bsp_spi_transmit_receive(const uint8_t *tx_data, uint8_t *rx_data, uint16_t len)
 {
   esp_err_t ret;
   spi_transaction_t t;
@@ -158,9 +162,9 @@ static inline void bsp_spi_init(void)
 
   spi_bus_config_t bus_cfg =
   {
-    .miso_io_num   = SPI_MISO_PIN,
-    .mosi_io_num   = SPI_MOSI_PIN,
-    .sclk_io_num   = SPI_SCLK_PIN,
+    .miso_io_num   = IO_NFC_SPI_MISO,
+    .mosi_io_num   = IO_NFC_SPI_MOSI,
+    .sclk_io_num   = IO_NFC_SPI_CLK,
     .quadwp_io_num = -1,
     .quadhd_io_num = -1
   };
@@ -180,6 +184,12 @@ static inline void bsp_spi_init(void)
   // Attach the LCD to the SPI bus
   ret = spi_bus_add_device(HSPI_HOST, &dev_cfg, &m_spi_hdl);
   assert(ret == ESP_OK);
+}
+
+static inline void bsp_gpio_init(void)
+{
+  gpio_pad_select_gpio(IO_NFC_SPI_SS);
+  gpio_set_direction(IO_NFC_SPI_SS, GPIO_MODE_OUTPUT);
 }
 
 /* End of file -------------------------------------------------------- */

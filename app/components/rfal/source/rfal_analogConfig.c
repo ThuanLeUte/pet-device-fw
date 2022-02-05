@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 /*
  *      PROJECT:   ST25R391x firmware
@@ -34,27 +39,18 @@
  * INCLUDES
  ******************************************************************************
  */
+#include "rfal_analogConfigTbl.h"
 #include "rfal_analogConfig.h"
 #include "rfal_chip.h"
 #include "st_errno.h"
 #include "platform.h"
 #include "utils.h"
 
-
-/* Check whether the Default Analog settings are to be used or custom ones */
-#ifdef RFAL_ANALOG_CONFIG_CUSTOM
-    extern const uint8_t  rfalAnalogConfigCustomSettings[];
-    extern const uint16_t rfalAnalogConfigCustomSettingsLength;
-#else
-    #include "rfal_analogConfigTbl.h"
-#endif
-
 /*
  ******************************************************************************
  * DEFINES
  ******************************************************************************
  */
-
 
 #define RFAL_TEST_REG         0x0080U      /*!< Test Register indicator  */    
 
@@ -116,17 +112,10 @@ static rfalAnalogConfigNum rfalAnalogConfigSearch( rfalAnalogConfigId configId, 
 void rfalAnalogConfigInitialize( void )
 {
     /* Use default Analog configuration settings in Flash by default. */
-
-/* Check whether the Default Analog settings are to be used or custom ones */  
-#ifdef RFAL_ANALOG_CONFIG_CUSTOM
-    gRfalAnalogConfigMgmt.currentAnalogConfigTbl = rfalAnalogConfigCustomSettings;
-    gRfalAnalogConfigMgmt.configTblSize          = rfalAnalogConfigCustomSettingsLength;
-#else  
-    gRfalAnalogConfigMgmt.currentAnalogConfigTbl = rfalAnalogConfigDefaultSettings;
-    gRfalAnalogConfigMgmt.configTblSize          = sizeof(rfalAnalogConfigDefaultSettings);
-#endif
-  
-  gRfalAnalogConfigMgmt.ready = true;
+    gRfalAnalogConfigMgmt.currentAnalogConfigTbl = (const uint8_t *)rfalAnalogConfigDefaultSettings;
+    gRfalAnalogConfigMgmt.configTblSize = sizeof(rfalAnalogConfigDefaultSettings);
+    gRfalAnalogConfigMgmt.ready = true;
+    
 } /* rfalAnalogConfigInitialize() */
 
 
@@ -189,7 +178,7 @@ ReturnCode rfalAnalogConfigListWrite( uint8_t more, const rfalAnalogConfig *conf
     
     /* Check validity of the Configuration ID. */
     if ( (RFAL_ANALOG_CONFIG_TECH_RFU <= RFAL_ANALOG_CONFIG_ID_GET_TECH(configId))
-       ||((RFAL_ANALOG_CONFIG_BITRATE_6780 < RFAL_ANALOG_CONFIG_ID_GET_BITRATE(configId)) && (RFAL_ANALOG_CONFIG_BITRATE_53 > RFAL_ANALOG_CONFIG_ID_GET_BITRATE(configId)))
+       ||((RFAL_ANALOG_CONFIG_BITRATE_6780 < RFAL_ANALOG_CONFIG_ID_GET_BITRATE(configId)) && (RFAL_ANALOG_CONFIG_BITRATE_1OF4 > RFAL_ANALOG_CONFIG_ID_GET_BITRATE(configId)))
        ||(RFAL_ANALOG_CONFIG_BITRATE_1OF256 < RFAL_ANALOG_CONFIG_ID_GET_BITRATE(configId))
        )
     {
@@ -291,7 +280,7 @@ ReturnCode rfalSetAnalogConfig( rfalAnalogConfigId configId )
 {
     rfalAnalogConfigOffset configOffset = 0;
     rfalAnalogConfigNum numConfigSet;
-    const rfalAnalogConfigRegAddrMaskVal *configTbl;
+    rfalAnalogConfigRegAddrMaskVal *configTbl;
     ReturnCode retCode = ERR_NONE;
     rfalAnalogConfigNum i;
     
@@ -335,60 +324,6 @@ ReturnCode rfalSetAnalogConfig( rfalAnalogConfigId configId )
     return retCode;
     
 } /* rfalSetAnalogConfig() */
-
-
-uint16_t rfalAnalogConfigGenModeID( rfalMode md, rfalBitRate br, uint16_t dir )
-{
-    uint16_t id;
-    
-    /* Assign Poll/Listen Mode */
-    id = ((md >= RFAL_MODE_LISTEN_NFCA) ? RFAL_ANALOG_CONFIG_LISTEN : RFAL_ANALOG_CONFIG_POLL);
-    
-    /* Assign Technology */
-    switch( md )
-    {
-        case RFAL_MODE_POLL_NFCA:
-        case RFAL_MODE_POLL_NFCA_T1T:
-        case RFAL_MODE_LISTEN_NFCA:            
-            id |= RFAL_ANALOG_CONFIG_TECH_NFCA;
-            break;
-        
-        case RFAL_MODE_POLL_NFCB:
-        case RFAL_MODE_POLL_B_PRIME:
-        case RFAL_MODE_POLL_B_CTS:
-        case RFAL_MODE_LISTEN_NFCB:
-            id |= RFAL_ANALOG_CONFIG_TECH_NFCB;
-            break;
-        
-        case RFAL_MODE_POLL_NFCF:
-        case RFAL_MODE_LISTEN_NFCF:
-            id |= RFAL_ANALOG_CONFIG_TECH_NFCF;
-            break;
-        
-        case RFAL_MODE_POLL_NFCV:
-        case RFAL_MODE_POLL_PICOPASS:
-            id |= RFAL_ANALOG_CONFIG_TECH_NFCV;
-            break;
-        
-        case RFAL_MODE_POLL_ACTIVE_P2P:
-        case RFAL_MODE_LISTEN_ACTIVE_P2P:
-            id |= RFAL_ANALOG_CONFIG_TECH_AP2P;
-            break;
-        
-        default:
-            id = RFAL_ANALOG_CONFIG_TECH_CHIP;
-            break;
-    }
-    
-    /* Assign Bitrate */
-    id |= (((((uint16_t)(br) >= (uint16_t)RFAL_BR_52p97) ? (uint16_t)(br) : ((uint16_t)(br)+1U)) << RFAL_ANALOG_CONFIG_BITRATE_SHIFT) & RFAL_ANALOG_CONFIG_BITRATE_MASK);
-    
-    /* Assign Direction */
-    id |= ((dir<<RFAL_ANALOG_CONFIG_DIRECTION_SHIFT) & RFAL_ANALOG_CONFIG_DIRECTION_MASK);
-    
-    return id;
-    
-} /* rfalAnalogConfigGenModeID() */
 
 /*
  ******************************************************************************
@@ -444,14 +379,6 @@ static rfalAnalogConfigNum rfalAnalogConfigSearch( rfalAnalogConfigId configId, 
                        |((RFAL_ANALOG_CONFIG_TECH_CHIP == RFAL_ANALOG_CONFIG_ID_GET_TECH(configId)) ? (RFAL_ANALOG_CONFIG_TECH_MASK | RFAL_ANALOG_CONFIG_CHIP_SPECIFIC_MASK) : configId)
                        |((RFAL_ANALOG_CONFIG_NO_DIRECTION == RFAL_ANALOG_CONFIG_ID_GET_DIRECTION(configId)) ? RFAL_ANALOG_CONFIG_DIRECTION_MASK : configId)
                        );
-    
-    
-    /* When specific ConfigIDs are to be used, override search mask */
-    if( (RFAL_ANALOG_CONFIG_ID_GET_DIRECTION(configId) == RFAL_ANALOG_CONFIG_DPO) )
-    {
-        configIdMaskVal = (RFAL_ANALOG_CONFIG_POLL_LISTEN_MODE_MASK | RFAL_ANALOG_CONFIG_TECH_MASK | RFAL_ANALOG_CONFIG_BITRATE_MASK | RFAL_ANALOG_CONFIG_DIRECTION_MASK);
-    }
-    
     
     i = *configOffset;
     while (i < gRfalAnalogConfigMgmt.configTblSize)

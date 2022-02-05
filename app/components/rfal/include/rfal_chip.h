@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -185,9 +190,9 @@ ReturnCode rfalChipExecCmd( uint16_t cmd );
 
 /*! 
  *****************************************************************************
- * \brief  Set RFO
+ * \brief  Set Modulated RFO
  *
- * Sets the RFO value to be used when the field is on (unmodulated/active)
+ * Sets the RFO value to be used in the modulated state
  * 
  * \param[in] rfo : the RFO value to be used
  *
@@ -196,14 +201,14 @@ ReturnCode rfalChipExecCmd( uint16_t cmd );
  * \return  ERR_NONE         : No error
  *****************************************************************************
  */
-ReturnCode rfalChipSetRFO( uint8_t rfo );
+ReturnCode rfalChipSetModulatedRFO( uint8_t rfo );
 
 
 /*! 
  *****************************************************************************
- * \brief  Get RFO
+ * \brief  Get Modulated RFO
  *
- * Gets the RFO value used used when the field is on (unmodulated/active)
+ * Gets the RFO value used in the modulated state
  *
  * \param[out] result : the current RFO value 
  *
@@ -212,7 +217,7 @@ ReturnCode rfalChipSetRFO( uint8_t rfo );
  * \return  ERR_NONE         : No error
  *****************************************************************************
  */
-ReturnCode rfalChipGetRFO( uint8_t* result );
+ReturnCode rfalChipGetModulatedRFO( uint8_t* result );
 
 
 /*! 

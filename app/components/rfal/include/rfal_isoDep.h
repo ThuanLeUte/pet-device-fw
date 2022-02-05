@@ -1,11 +1,17 @@
 
 /******************************************************************************
-  * @attention
+  * \attention
   *
-  * COPYRIGHT 2016 STMicroelectronics, all rights reserved
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Licensed under ST MYLIBERTY SOFTWARE LICENSE AGREEMENT (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        www.st.com/myliberty
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
   * AND SPECIFICALLY DISCLAIMING THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
@@ -13,7 +19,6 @@
   * limitations under the License.
   *
 ******************************************************************************/
-
 
 
 /*
@@ -55,27 +60,6 @@
  */
 #include "platform.h"
 #include "rfal_nfcb.h"
-
-
-/*
- ******************************************************************************
- * ENABLE SWITCH
- ******************************************************************************
- */
-
-#ifndef RFAL_FEATURE_ISO_DEP
-    #define RFAL_FEATURE_ISO_DEP   false                 /*!< ISO-DEP module configuration missing. Disabled by default */
-#endif
-
-/* If module is disabled remove the need for the user to set lengths */
-#if !RFAL_FEATURE_ISO_DEP
-    #undef RFAL_FEATURE_ISO_DEP_IBLOCK_MAX_LEN
-    #undef RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN
-
-    #define RFAL_FEATURE_ISO_DEP_IBLOCK_MAX_LEN  (1U)    /*!< ISO-DEP I-Block max length, set to "none" */
-    #define RFAL_FEATURE_ISO_DEP_APDU_MAX_LEN    (1U)    /*!< ISO-DEP APDU max length, set to "none"    */
-#endif /* !RFAL_FEATURE_NFC_DEP  */
-
 /*
  ******************************************************************************
  * DEFINES
@@ -90,6 +74,7 @@
 #define RFAL_ISODEP_NO_DID                      (0x00U)  /*!< DID value indicating the ISO-DEP layer not to use DID             */
 #define RFAL_ISODEP_NO_NAD                      (0xFFU)  /*!< NAD value indicating the ISO-DEP layer not to use NAD             */
 
+#define RFAL_ISODEP_FSDI_DEFAULT                (8U)     /*!< Default Frame Size Integer supported by NFCC as Initiator         */
 #define RFAL_ISODEP_FWI_MASK                    (0xF0U)  /*!< Mask bits of FWI                                                  */
 #define RFAL_ISODEP_FWI_SHIFT                   (4U)     /*!< Shift val of FWI                                                  */
 #define RFAL_ISODEP_FWI_DEFAULT                 (4U)     /*!< Default value for FWI Digital 1.0 11.6.2.17                       */
@@ -107,12 +92,10 @@
 
 
 
-#define RFAL_ISODEP_FSDI_DEFAULT                RFAL_ISODEP_FSXI_256  /*!< Default Frame Size Integer in Poll mode              */
 #define RFAL_ISODEP_FSX_KEEP                    (0xFFU)               /*!< Flag to keep FSX from activation                     */
 #define RFAL_ISODEP_DEFAULT_FSCI                RFAL_ISODEP_FSXI_256  /*!< FSCI default value to be used  in Listen Mode        */
 #define RFAL_ISODEP_DEFAULT_FSC                 RFAL_ISODEP_FSX_256   /*!< FSC default value (aligned RFAL_ISODEP_DEFAULT_FSCI) */
 #define RFAL_ISODEP_DEFAULT_SFGI                (0U)                  /*!< SFGI Default value to be used  in Listen Mode        */
-#define RFAL_ISODEP_DEFAULT_FWI                 (8U)                  /*!< Default Listener FWI (Max)      Digital 2.0  B7 & B3 */
 
 #define RFAL_ISODEP_APDU_MAX_LEN                RFAL_ISODEP_FSX_1024  /*!< Max APDU length                                      */
 
@@ -160,13 +143,10 @@
 #define RFAL_ISODEP_ATS_T0_OFFSET               (0x01U)  /*!< Offset of T0 in ATS Response                                      */
 
 
-#define RFAL_ISODEP_MAX_I_RETRYS                (2U)     /*!< Number of retries for a I-Block     Digital 2.0   16.2.5.4                  */
-#define RFAL_ISODEP_MAX_R_RETRYS                (3U)     /*!< Number of retries for a R-Block     Digital 2.0 B9 - nRETRY ACK/NAK: [2,5]  */
-#define RFAL_ISODEP_MAX_WTX_NACK_RETRYS         (3U)     /*!< Number of S(WTX) replied with NACK  Digital 2.0 B9 - nRETRY WTX[2,5]        */
-#define RFAL_ISODEP_MAX_WTX_RETRYS              (20U)    /*!< Number of overall S(WTX) retries    Digital 2.0  16.2.5.2                   */
-#define RFAL_ISODEP_MAX_WTX_RETRYS_ULTD         (255U)   /*!< Use unlimited number of overall S(WTX)                                      */
-#define RFAL_ISODEP_MAX_DSL_RETRYS              (0U)     /*!< Number of retries for a S(DESELECT) Digital 2.0 B9 - nRETRY DESELECT: [0,5] */
-#define RFAL_ISODEP_RATS_RETRIES                (1U)     /*!< RATS retries upon fail              Digital 2.0 B7 - nRETRY RATS [0,1]      */
+#define RFAL_ISODEP_MAX_I_RETRYS                (2U)     /*!< Number of retries for a I-Block  Digital 1.1   15.2.5.4                            */
+#define RFAL_ISODEP_MAX_R_RETRYS                (3U)     /*!< Number of retries for a R-Block  Digital 1.1 A8 - nRETRY ACK/NAK:  [2,5]           */
+#define RFAL_ISODEP_MAX_S_RETRYS                (3U)     /*!< Number of retries for a S-Block  Digital 1.1 A8 - nRETRY DESELECT: [0,5] WTX[2,5]  */
+#define RFAL_ISODEP_RATS_RETRIES                (1U)     /*!< RATS retries upon fail           Digital 1.1  A.6 - [0,1]                          */
  
 
 /*! Frame Size for Proximity Card Integer definitions                                                               */
@@ -288,7 +268,7 @@ typedef struct
 typedef union {/*  PRQA S 0750 # MISRA 19.2 - Both members of the union will not be used concurrently, device is only of type A or B at a time. Thus no problem can occur. */
 
     /*! NFC-A information                                                                         */
-    union {
+    union {/*  PRQA S 0750 # MISRA 19.2 - Both members of the union will not be used concurrently, device is only PCD or PICC at a time. Thus no problem can occur. */
         struct {
             rfalIsoDepAts        ATS;               /*!< ATS response            (Poller mode)    */
             uint8_t              ATSLen;            /*!< ATS response length     (Poller mode)    */
@@ -299,7 +279,7 @@ typedef union {/*  PRQA S 0750 # MISRA 19.2 - Both members of the union will not
     }A;
     
     /*! NFC-B information                                                                         */
-    union {
+    union {/*  PRQA S 0750 # MISRA 19.2 - Both members of the union will not be used concurrently, device is only PCD or PICC at a time. Thus no problem can occur. */
         struct{
             rfalIsoDepAttribRes  ATTRIB_RES;        /*!< ATTRIB_RES              (Poller mode)    */
             uint8_t              ATTRIB_RESLen;     /*!< ATTRIB_RES length       (Poller mode)    */
@@ -443,31 +423,15 @@ void rfalIsoDepInitialize( void );
  * Initialize the ISO-DEP protocol layer with additional parameters allowing
  * to customise the protocol layer for specific behaviours
  * 
-
- *  \param[in] compMode        : Compliance mode to be performed
- *  \param[in] maxRetriesR     : Number of retries for a R-Block
- *                                Digital 2.0 B9 - nRETRY ACK/NAK: [2,5]
- *  \param[in] maxRetriesSnWTX : Number of retries for a S(WTX) (only in case
- *                               of NAKs)   Digital 2.0 B9 - nRETRY WTX[2,5]    
- *  \param[in] maxRetriesSWTX  : Number of overall S(WTX) retries. 
- *                                Use RFAL_ISODEP_MAX_WTX_RETRYS_ULTD for disabling 
- *                                this limit check   Digital 2.0  16.2.5.2
- *  \param[in] maxRetriesSDSL  : Number of retries for a S(DESELECT)
- *                                Digital 2.0 B9 - nRETRY DESELECT: [0,5]
- *  \param[in] maxRetriesI     : Number of retries for a I-Block 
- *                                Digital 2.0  16.2.5.4
- *  \param[in] maxRetriesRATS  : Number of retries for RATS 
- *                                Digital 2.0 B7 - nRETRY RATS [0,1]
+ *  \param[in] compMode       : compliance mode to be performed
+ *  \param[in] maxRetriesR    :  Number of retries for a R-Block
+ *  \param[in] maxRetriesS    :  Number of retries for a S-Block
+ *  \param[in] maxRetriesI    :  Number of retries for a I-Block 
+ *  \param[in] maxRetriesRATS :  Number of retries for RATS
  *    
  ******************************************************************************
  */
-void rfalIsoDepInitializeWithParams( rfalComplianceMode compMode,
-                                     uint8_t maxRetriesR,
-                                     uint8_t maxRetriesSnWTX,
-                                     uint8_t maxRetriesSWTX,
-                                     uint8_t maxRetriesSDSL,
-                                     uint8_t maxRetriesI,
-                                     uint8_t maxRetriesRATS );
+void rfalIsoDepInitializeWithParams( rfalComplianceMode compMode, uint8_t maxRetriesR, uint8_t maxRetriesS, uint8_t maxRetriesI, uint8_t maxRetriesRATS );
 
 
 /*!
@@ -580,7 +544,7 @@ bool rfalIsoDepIsAttrib( const uint8_t *buf, uint8_t bufLen );
  *  \return ERR_NOTSUPP : Feature not supported
  *****************************************************************************
  */
-ReturnCode rfalIsoDepListenStartActivation( rfalIsoDepAtsParam *atsParam, const rfalIsoDepAttribResParam *attribResParam, const uint8_t *buf, uint16_t bufLen, rfalIsoDepListenActvParam actParam );
+ReturnCode rfalIsoDepListenStartActivation( rfalIsoDepAtsParam *atsParam, const rfalIsoDepAttribResParam *attribResParam, uint8_t *buf, uint16_t bufLen, rfalIsoDepListenActvParam actParam );
 
 
 /*!
@@ -815,10 +779,10 @@ ReturnCode rfalIsoDepDeselect( void );
  *  both devices it additionally sends PPS
  *  Once Activated all details of the device are provided on isoDepDev
  *   
- *  \param[in]  FSDI          : Frame Size Device Integer to be used
- *  \param[in]  DID           : Device ID to be used or RFAL_ISODEP_NO_DID for not use DID
- *  \param[in]  maxBR         : Max bit rate supported by the Poller
- *  \param[out] rfalIsoDepDev : ISO-DEP information of the activated Listen device
+ *  \param[in]  FSDI      : Frame Size Device Integer to be used
+ *  \param[in]  DID       : Device ID to be used or RFAL_ISODEP_NO_DID for not use DID
+ *  \param[in]  maxBR     : Max bit rate supported by the Poller
+ *  \param[out] isoDepDev : ISO-DEP information of the activated Listen device
  *
  *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
  *  \return ERR_PARAM        : Invalid parameters
@@ -831,7 +795,7 @@ ReturnCode rfalIsoDepDeselect( void );
  *  \return ERR_NONE         : No error, activation successful
  *****************************************************************************
  */
-ReturnCode rfalIsoDepPollAHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, rfalIsoDepDevice *rfalIsoDepDev );
+ReturnCode rfalIsoDepPollAHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, rfalIsoDepDevice *isoDepDev );
 
 
 /*! 
@@ -843,14 +807,14 @@ ReturnCode rfalIsoDepPollAHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rf
  *  devices and performs activation.
  *  Once Activated all details of the device are provided on isoDepDev
  *   
- *  \param[in]  FSDI           : Frame Size Device Integer to be used
- *  \param[in]  DID            : Device ID to be used or RFAL_ISODEP_NO_DID for not use DID
- *  \param[in]  maxBR          : Max bit rate supported by the Poller
- *  \param[in]  PARAM1         : ATTRIB PARAM1 byte (communication parameters)
- *  \param[in]  nfcbDev        : pointer to the NFC-B Device containing the SENSB_RES
- *  \param[in]  HLInfo         : pointer to Higher layer INF (NULL if none)
- *  \param[in]  HLInfoLen      : Length HLInfo
- *  \param[out] rfalIsoDepDev  : ISO-DEP information of the activated Listen device
+ *  \param[in]  FSDI         : Frame Size Device Integer to be used
+ *  \param[in]  DID          : Device ID to be used or RFAL_ISODEP_NO_DID for not use DID
+ *  \param[in]  maxBR        : Max bit rate supported by the Poller
+ *  \param[in]  PARAM1       : ATTRIB PARAM1 byte (communication parameters)
+ *  \param[in]  nfcbDev      : pointer to the NFC-B Device containing the SENSB_RES
+ *  \param[in]  HLInfo       : pointer to Higher layer INF (NULL if none)
+ *  \param[in]  HLInfoLen    : Length HLInfo
+ *  \param[out] isoDepDev    : ISO-DEP information of the activated Listen device
  *
  *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
  *  \return ERR_PARAM        : Invalid parameters
@@ -863,7 +827,7 @@ ReturnCode rfalIsoDepPollAHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rf
  *  \return ERR_NONE         : No error, activation successful
  *****************************************************************************
  */
-ReturnCode rfalIsoDepPollBHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, uint8_t PARAM1, const rfalNfcbListenDevice *nfcbDev, const uint8_t* HLInfo, uint8_t HLInfoLen, rfalIsoDepDevice *rfalIsoDepDev );
+ReturnCode rfalIsoDepPollBHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, uint8_t PARAM1, const rfalNfcbListenDevice *nfcbDev, const uint8_t* HLInfo, uint8_t HLInfoLen, rfalIsoDepDevice *isoDepDev );
 
 
 /*! 
@@ -874,9 +838,9 @@ ReturnCode rfalIsoDepPollBHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rf
  *  capabilities and sets the Bit Rate at the highest supported by both
  *  devices
  *   
- *  \param[out] rfalIsoDepDev  : ISO-DEP information of the activated Listen device
- *  \param[in]  maxTxBR        : Maximum Tx bit rate supported by PCD
- *  \param[in]  maxRxBR        : Maximum Rx bit rate supported by PCD
+ *  \param[out] isoDepDev    : ISO-DEP information of the activated Listen device
+ *  \param[in]  maxTxBR      : Maximum Tx bit rate supported by PCD
+ *  \param[in]  maxRxBR      : Maximum Rx bit rate supported by PCD
  *
  *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
  *  \return ERR_PARAM        : Invalid parameters
@@ -887,118 +851,7 @@ ReturnCode rfalIsoDepPollBHandleActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rf
  *  \return ERR_NONE         : No error, S(PARAMETERS) selection successful
  *****************************************************************************
  */
-ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *rfalIsoDepDev, rfalBitRate maxTxBR, rfalBitRate maxRxBR );
-
-
-/*!
- *****************************************************************************
- *  \brief  ISO-DEP Poller Start NFC-A Activation 
- *
- *  This starts a NFC-A Activation into ISO-DEP layer (ISO14443-4) with the given
- *  parameters. It sends RATS and if the higher bit rates are supported by
- *  both devices it additionally sends PPS
- *  Once Activated all details of the device are provided on isoDepDev
- *
- *
- *  \see rfalIsoDepPollAGetActivationStatus
- *
- *  \param[in]  FSDI          : Frame Size Device Integer to be used
- *  \param[in]  DID           : Device ID to be used or RFAL_ISODEP_NO_DID for not use DID
- *  \param[in]  maxBR         : Max bit rate supported by the Poller
- *  \param[out] rfalIsoDepDev : ISO-DEP information of the activated Listen device
- *
- *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
- *  \return ERR_PARAM        : Invalid parameters
- *  \return ERR_IO           : Generic internal error
- *  \return ERR_TIMEOUT      : Timeout error
- *  \return ERR_PAR          : Parity error detected
- *  \return ERR_CRC          : CRC error detected
- *  \return ERR_FRAMING      : Framing error detected
- *  \return ERR_PROTO        : Protocol error detected
- *  \return ERR_NONE         : No error, start of asynchronous operation successful
- *****************************************************************************
- */
-ReturnCode rfalIsoDepPollAStartActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, rfalIsoDepDevice *rfalIsoDepDev );
-
-
-/*!
- *****************************************************************************
- *  \brief  ISO-DEP Poller Get NFC-A Activation Status
- *
- *  Returns the activation status started by rfalIsoDepPollAStartActivation
- *
- *  \see rfalIsoDepPollAStartActivation
- *
- *  \return ERR_BUSY         : Operation is ongoing
- *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
- *  \return ERR_PARAM        : Invalid parameters
- *  \return ERR_IO           : Generic internal error
- *  \return ERR_TIMEOUT      : Timeout error
- *  \return ERR_PAR          : Parity error detected
- *  \return ERR_CRC          : CRC error detected
- *  \return ERR_FRAMING      : Framing error detected
- *  \return ERR_PROTO        : Protocol error detected
- *  \return ERR_NONE         : No error, activation successful
- *****************************************************************************
- */
-ReturnCode rfalIsoDepPollAGetActivationStatus( void );
-
-
-/*!
- *****************************************************************************
- *  \brief  ISO-DEP Poller Start NFC-B Activation 
- *
- *  This starts a NFC-B Activation into ISO-DEP layer (ISO14443-4) with the given
- *  parameters. It will send ATTRIB and calculate supported higher bit rates of both 
- *  devices and perform activation.
- *  Once Activated all details of the device are provided on isoDepDev
- *
- *  \see rfalIsoDepPollBGetActivationStatus
- *
- *  \param[in]  FSDI          : Frame Size Device Integer to be used
- *  \param[in]  DID           : Device ID to be used or RFAL_ISODEP_NO_DID for not use DID
- *  \param[in]  maxBR         : Max bit rate supported by the Poller
- *  \param[in]  PARAM1        : ATTRIB PARAM1 byte (communication parameters)
- *  \param[in]  nfcbDev       : pointer to the NFC-B Device containing the SENSB_RES
- *  \param[in]  HLInfo        : pointer to Higher layer INF (NULL if none)
- *  \param[in]  HLInfoLen     : Length HLInfo
- *  \param[out] rfalIsoDepDev : ISO-DEP information of the activated Listen device
- *
- *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
- *  \return ERR_PARAM        : Invalid parameters
- *  \return ERR_IO           : Generic internal error
- *  \return ERR_TIMEOUT      : Timeout error
- *  \return ERR_PAR          : Parity error detected
- *  \return ERR_CRC          : CRC error detected
- *  \return ERR_FRAMING      : Framing error detected
- *  \return ERR_PROTO        : Protocol error detected
- *  \return ERR_NONE         : No error, start of asynchronous operation successful
- *****************************************************************************
- */
-ReturnCode rfalIsoDepPollBStartActivation( rfalIsoDepFSxI FSDI, uint8_t DID, rfalBitRate maxBR, uint8_t PARAM1, const rfalNfcbListenDevice *nfcbDev, const uint8_t* HLInfo, uint8_t HLInfoLen, rfalIsoDepDevice *rfalIsoDepDev );
-
-
-/*!
- *****************************************************************************
- *  \brief  ISO-DEP Poller Get NFC-B Activation Status
- *
- *  Returns the activation status started by rfalIsoDepPollBStartActivation
- *
- *  \see rfalIsoDepPollBStartActivation
- *
- *  \return ERR_BUSY         : Operation is ongoing
- *  \return ERR_WRONG_STATE  : RFAL not initialized or incorrect mode
- *  \return ERR_PARAM        : Invalid parameters
- *  \return ERR_IO           : Generic internal error
- *  \return ERR_TIMEOUT      : Timeout error
- *  \return ERR_PAR          : Parity error detected
- *  \return ERR_CRC          : CRC error detected
- *  \return ERR_FRAMING      : Framing error detected
- *  \return ERR_PROTO        : Protocol error detected
- *  \return ERR_NONE         : No error, activation successful
- *****************************************************************************
- */
-ReturnCode rfalIsoDepPollBGetActivationStatus( void );
+ReturnCode rfalIsoDepPollHandleSParameters( rfalIsoDepDevice *isoDepDev, rfalBitRate maxTxBR, rfalBitRate maxRxBR );
 
 
 #endif /* RFAL_ISODEP_H_ */
