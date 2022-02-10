@@ -178,15 +178,15 @@ void demoCycle( void )
 {
   bool found = false;
   
-  /* Check if USER button is pressed */
-  if( platformGpioIsLow(PLATFORM_USER_BUTTON_PORT, PLATFORM_USER_BUTTON_PIN))
-  {
-			doWakeUp = !doWakeUp;             /* enable/disable wakeup */
-			state = DEMO_ST_FIELD_OFF;        /* restart loop          */
+  // /* Check if USER button is pressed */
+  // if( platformGpioIsLow(PLATFORM_USER_BUTTON_PORT, PLATFORM_USER_BUTTON_PIN))
+  // {
+	// 		doWakeUp = !doWakeUp;             /* enable/disable wakeup */
+	// 		state = DEMO_ST_FIELD_OFF;        /* restart loop          */
     
-			/* Debounce button */
-			while( platformGpioIsLow(PLATFORM_USER_BUTTON_PORT, PLATFORM_USER_BUTTON_PIN) );
-	}
+	// 		/* Debounce button */
+	// 		while( platformGpioIsLow(PLATFORM_USER_BUTTON_PORT, PLATFORM_USER_BUTTON_PIN) );
+	// }
   
   switch( stateArray[state] )
   {
@@ -218,7 +218,7 @@ void demoCycle( void )
 
 
     case DEMO_ST_POLL_ACTIVE_TECH:
-      demoPollAP2P();
+      // demoPollAP2P();
       platformDelay(40);
       NEXT_STATE();
       break;
@@ -229,7 +229,9 @@ void demoCycle( void )
       found |= demoPollST25TB();
       found |= demoPollNFCF();
       found |= demoPollNFCV();
-    
+
+      platformLog("Found: %d\r\n", found);
+
       platformDelay(300);
       state = DEMO_ST_FIELD_OFF;
       break;

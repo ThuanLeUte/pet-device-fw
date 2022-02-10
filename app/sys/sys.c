@@ -14,6 +14,7 @@
 #include "platform_common.h"
 #include "bsp.h"
 #include "demo.h"
+#include "st25r3911.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define EXAMPLE_ESP_WIFI_SSID "A06.11"
@@ -36,10 +37,21 @@ static void m_wifi_event_handler(void *arg, esp_event_base_t event_base,
 static void m_wifi_init_sta(void);
 
 /* Function definitions ----------------------------------------------------- */
+
+static void sys_nfc_check_task(void *p_param)
+{
+  while (1)
+  {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+}
+
 void sys_boot(void)
 {
   // Board Support Package init
   bsp_init();
+
+  xTaskCreatePinnedToCore(sys_nfc_check_task, "nfc_check_task", 3072, NULL, 5 - 1, NULL, 1);
 
   // Initialize RFAL
   rfalAnalogConfigInitialize();
@@ -52,6 +64,7 @@ void sys_boot(void)
     while (1)
     {
       platformDelay(500);
+      st25r3911CheckChipID( NULL );
     }
   }
 
@@ -65,6 +78,7 @@ void sys_boot(void)
 
     // Run Demo Application
     demoCycle();
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 

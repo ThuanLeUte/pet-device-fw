@@ -19,6 +19,7 @@
 
 #include "st_errno.h"
 #include "bsp_io_11.h"
+#include "timer.h"
 
 /* Public defines ----------------------------------------------------- */
 #define ST25R3911                               (1)
@@ -81,8 +82,8 @@
 #define platformGpioIsHigh(port, pin)          (gpio_get_level(pin) == 1)         /*!< Checks if the given LED is High                   */
 #define platformGpioIsLow(port, pin)           (gpio_get_level(pin) == 0)         /*!< Checks if the given LED is Low                    */
 
-#define platformTimerCreate(t)                 xTaskGetTickCount() //timerCalculateTimer(t)             /*!< Create a timer with the given time (ms)           */
-#define platformTimerIsExpired(timer)          xTaskGetTickCount() //timerIsExpired(timer)              /*!< Checks if the given timer is expired              */
+#define platformTimerCreate(t)                 timerCalculateTimer(t)             /*!< Create a timer with the given time (ms)           */
+#define platformTimerIsExpired(timer)          timerIsExpired(timer)              /*!< Checks if the given timer is expired              */
 #define platformDelay(t)                       vTaskDelay(pdMS_TO_TICKS(t))       /*!< Performs a delay for the given time (ms)          */
 #define platformGetSysTick()                   xTaskGetTickCount()                /*!< Get System Tick ( 1 tick = 1 ms)                  */
 #define platformLog(...)                       bsp_log_data(__VA_ARGS__)          /*!< Log  method                                       */

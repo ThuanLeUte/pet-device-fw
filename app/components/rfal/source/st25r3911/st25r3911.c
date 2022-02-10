@@ -384,6 +384,8 @@ bool st25r3911CheckChipID( uint8_t *rev )
     
     ID = 0;    
     st25r3911ReadRegister( ST25R3911_REG_IC_IDENTITY, &ID );
+
+    platformLog("ID: %d", ID);
     
     /* Check if IC Identity Register contains ST25R3911's IC type code */
     if( (ID & ST25R3911_REG_IC_IDENTITY_mask_ic_type) != ST25R3911_REG_IC_IDENTITY_ic_type )
