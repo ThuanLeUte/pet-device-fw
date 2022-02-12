@@ -210,7 +210,7 @@ static void gpio_task_example(void *arg)
     {
       printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
 
-      if (gpio_get_level(io_num))
+      // if (gpio_get_level(io_num))
       {
         printf("Interrupt \n");
         data++;
