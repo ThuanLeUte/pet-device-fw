@@ -129,18 +129,20 @@
 #endif /* ST25R391X_INTERFACE_SPI */
 
 
-/* Protect RFAL Worker/Task/Process from concurrent execution on multi thread platforms   */
-#define platformProtectWorker()             
-#define platformProtectST25R391xComm()
-#define platformProtectST25R391xIrqStatus()
-#define platformIrqST25R3911PinInitialize()
-#define platformIrqST25R3911SetCallback(data)
+#define platformProtectST25R391xComm()                gpio_intr_disable(IO_NFC_IRQ_IN_PIN);
+#define platformUnprotectST25R391xComm()              gpio_intr_enable(IO_NFC_IRQ_IN_PIN);
 
-/* Unprotect RFAL Worker/Task/Process from concurrent execution on multi thread platforms */
-#define platformUnprotectWorker()
-#define platformUnprotectST25R391xComm()
-#define platformUnprotectST25R391xIrqStatus()
-#define platformLedsInitialize()
+#define platformIrqST25R3911SetCallback( cb )          
+#define platformIrqST25R3911PinInitialize()                
+
+#define platformIrqST25R3916SetCallback( cb )          
+#define platformIrqST25R3916PinInitialize()            
+
+
+#define platformProtectST25R391xIrqStatus()           platformProtectST25R391xComm()                /*!< Protect unique access to IRQ status var - IRQ disable on single thread environment (MCU) ; Mutex lock on a multi thread environment */
+#define platformUnprotectST25R391xIrqStatus()         platformUnprotectST25R391xComm()              /*!< Unprotect the IRQ status var - IRQ enable on a single thread environment (MCU) ; Mutex unlock on a multi thread environment         */              
+
+
 
 char *hex2Str(unsigned char *data, size_t dataLen);
 

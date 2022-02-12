@@ -58,6 +58,9 @@ void bsp_spi_transmit_receive(const uint8_t *tx_data, uint8_t *rx_data, uint16_t
  */
 void bsp_log_data(const char *format, ...);
 
+
+void interrupt_init(void);
+
 #endif /* BSP_H */
 
 /* End of file -------------------------------------------------------- */

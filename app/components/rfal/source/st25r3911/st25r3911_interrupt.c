@@ -94,7 +94,7 @@ void st25r3911InitInterrupts( void )
     st25r3911interrupt.mask         = 0;
     
     /* Initialize LEDs if existing and defined */
-    platformLedsInitialize();
+    // platformLedsInitialize();
 
 #ifdef PLATFORM_LED_RX_PIN
     platformLedOff( PLATFORM_LED_RX_PORT, PLATFORM_LED_RX_PIN );

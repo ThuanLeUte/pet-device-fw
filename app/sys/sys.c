@@ -69,6 +69,7 @@ void sys_boot(void)
   }
 
   ESP_LOGI(TAG, "Init ok");
+  interrupt_init();
 
   // Infinite loop
   while (1)
