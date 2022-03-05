@@ -18,13 +18,30 @@
 #include "platform_common.h"
 
 /* Public defines ----------------------------------------------------- */
-#define SPI_SS_PIN              (0)   // NFC
-#define SPI_MOSI_PIN            (0)   // NFC
-#define SPI_MISO_PIN            (0)   // NFC
-#define SPI_SCLK_PIN            (0)   // NFC
+/* Public enumerate/structure ----------------------------------------------- */
+typedef enum
+{
+  BSP_ERR_NONE
 
-#define IRQ_OUT_PIN             (-1)    // NFC
-#define IRQ_IN_PIN              (-1)   // NFC
+  //                                            |-------- 1: On-chip, 2: Off-chip
+  //                                             ||------ 00 - 99: Peripheral type
+  //                                               ||---- 00 - 99: Error code
+  ,BSP_ERR_SD_INIT                            = 20000
+  ,BSP_ERR_SD_COMMUNICATION                   = 20001
+  
+  ,BSP_ERR_IOE_INIT                           = 20100
+  ,BSP_ERR_IOE_COMMUNICATION                  = 20101
+
+  ,BSP_ERR_TEMPERATURE_INIT                   = 20200
+  ,BSP_ERR_TEMPERATURE_COMMUNICATION          = 20201
+
+  ,BSP_ERR_RTC_INIT                           = 20300
+  ,BSP_ERR_RTC_COMMUNICATION                  = 20301
+
+  ,BSP_ERR_NVS_INIT                           = 20400
+  ,BSP_ERR_NVS_COMMUNICATION                  = 20401
+}
+bsp_error_t;
 
 /* Public variables --------------------------------------------------- */
 /* Public function prototypes ----------------------------------------- */
@@ -58,6 +75,14 @@ void bsp_spi_transmit_receive(const uint8_t *tx_data, uint8_t *rx_data, uint16_t
  */
 void bsp_log_data(const char *format, ...);
 
+/**
+ * @brief         This function is executed in case of error occurrence.
+ * 
+ * @param[in]     error    Error
+ * 
+ * @return        None
+ */
+void bsp_error_handler(bsp_error_t error);
 
 void interrupt_init(void);
 
