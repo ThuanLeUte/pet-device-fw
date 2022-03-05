@@ -175,7 +175,7 @@ static inline void bsp_spi_init(void)
     .clock_speed_hz = 5000000,   // Clock out at 1 MHz
     .mode           = 1,         // SPI mode 0
     .spics_io_num   = -1,        // CS pin
-    .queue_size     = 7,         // We want to be able to queue 7 transactions at a time
+    .queue_size     = 100,       // We want to be able to queue 7 transactions at a time
   };
 
   // Initialize the SPI bus
