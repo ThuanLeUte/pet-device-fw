@@ -172,7 +172,7 @@ static inline void bsp_spi_init(void)
 
   spi_device_interface_config_t dev_cfg =
   {
-    .clock_speed_hz = 1000000,   // Clock out at 1 MHz
+    .clock_speed_hz = 5000000,   // Clock out at 1 MHz
     .mode           = 1,         // SPI mode 0
     .spics_io_num   = -1,        // CS pin
     .queue_size     = 7,         // We want to be able to queue 7 transactions at a time
@@ -203,9 +203,7 @@ static void gpio_task_example(void *arg)
   {
     if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY))
     {
-      printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
-      printf("Interrupt \n");
-      printf("Real Interrupt \n");
+      vTaskDelay(1);
       st25r3911Isr();
     }
   }
