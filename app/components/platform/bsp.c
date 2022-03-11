@@ -203,7 +203,6 @@ static void gpio_task_example(void *arg)
   {
     if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY))
     {
-      vTaskDelay(1);
       st25r3911Isr();
     }
   }
