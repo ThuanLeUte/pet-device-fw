@@ -44,7 +44,7 @@ void sys_boot(void)
 
   m_wifi_init_sta();
 
-  // sys_mqtt_init();
+  sys_mqtt_init();
 
   sys_nfc_init();
 }

@@ -49,7 +49,7 @@ bool sys_nfc_init(void)
   ESP_LOGI(TAG, "Init ok");
   interrupt_init();
 
-  xTaskCreate(sys_nfc_task, "nfc_task", NFC_TASK_STACK_SIZE, NULL, NFC_TASK_PRIORITY, NULL);
+  xTaskCreatePinnedToCore(sys_nfc_task, "nfc_task", NFC_TASK_STACK_SIZE, NULL, NFC_TASK_PRIORITY, NULL, 1);
 
   return true;
 }
@@ -64,7 +64,7 @@ void sys_nfc_task(void *p_param)
     // Run Demo Application
     demoCycle();
 
-    vTaskDelay(pdMS_TO_TICKS(10));
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 
