@@ -85,7 +85,7 @@
 #define platformTimerCreate(t)                 timerCalculateTimer(t)             /*!< Create a timer with the given time (ms)           */
 #define platformTimerIsExpired(timer)          timerIsExpired(timer)              /*!< Checks if the given timer is expired              */
 #define platformDelay(t)                       vTaskDelay(pdMS_TO_TICKS(t))       /*!< Performs a delay for the given time (ms)          */
-#define platformGetSysTick()                   xTaskGetTickCount()                /*!< Get System Tick ( 1 tick = 1 ms)                  */
+#define platformGetSysTick()                   (xTaskGetTickCount() * 10)              /*!< Get System Tick ( 1 tick = 1 ms)                  */
 #define platformLog(...)                       bsp_log_data(__VA_ARGS__)          /*!< Log  method                                       */
 #define platformTimerDestroy( timer )
 #define platformErrorHandle()

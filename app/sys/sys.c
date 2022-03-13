@@ -17,8 +17,8 @@
 #include "sys_mqtt.h"
 
 /* Private defines ---------------------------------------------------------- */
-#define EXAMPLE_ESP_WIFI_SSID "ABC"
-#define EXAMPLE_ESP_WIFI_PASS "hihikhung96"
+#define EXAMPLE_ESP_WIFI_SSID "A6.11"
+#define EXAMPLE_ESP_WIFI_PASS "Khongcomatkhau"
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
@@ -44,7 +44,7 @@ void sys_boot(void)
 
   m_wifi_init_sta();
 
-  // sys_mqtt_init();
+  sys_mqtt_init();
 
   sys_nfc_init();
 }

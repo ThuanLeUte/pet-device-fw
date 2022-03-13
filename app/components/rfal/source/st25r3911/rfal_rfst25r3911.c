@@ -56,7 +56,7 @@
 ******************************************************************************
 */
 
-
+#define NFC_CHECK_INTERVAL_MAX  (10) // 1Ms
 
 /*! Struct that holds all involved on a Transceive including the context passed by the caller     */
 typedef struct{
@@ -1249,12 +1249,15 @@ ReturnCode rfalTransceiveBlockingTx( uint8_t* txBuf, uint16_t txBufLen, uint8_t*
 static ReturnCode rfalTransceiveRunBlockingTx( void )
 {
     ReturnCode  ret;
+    uint16_t tmr;
+
+    tmr = platformTimerCreate(NFC_CHECK_INTERVAL_MAX);
         
     do{
         rfalWorker();
         ret = rfalGetTransceiveStatus();
     }
-    while( rfalIsTransceiveInTx() && (ret == ERR_BUSY) );
+    while( rfalIsTransceiveInTx() && (ret == ERR_BUSY) && (!platformTimerIsExpired(tmr)));
     
     if( rfalIsTransceiveInRx() )
     {
@@ -1269,12 +1272,15 @@ static ReturnCode rfalTransceiveRunBlockingTx( void )
 ReturnCode rfalTransceiveBlockingRx( void )
 {
     ReturnCode ret;
+    uint16_t tmr;
+
+    tmr = platformTimerCreate(NFC_CHECK_INTERVAL_MAX);
     
     do{
         rfalWorker();
         ret = rfalGetTransceiveStatus();
     }
-    while( rfalIsTransceiveInRx() && (ret == ERR_BUSY) );
+    while( rfalIsTransceiveInRx() && (ret == ERR_BUSY) && (!platformTimerIsExpired(tmr)));
         
     return ret;
 }
