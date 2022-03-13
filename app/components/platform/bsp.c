@@ -203,7 +203,6 @@ static void gpio_task_example(void *arg)
   {
     if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY))
     {
-      vTaskDelay(1);
       st25r3911Isr();
     }
   }
@@ -244,6 +243,11 @@ void interrupt_init(void)
 
   // start gpio task
   xTaskCreatePinnedToCore(gpio_task_example, "gpio_task_example", 2048, NULL, 3, NULL, 1);
+}
+
+void bsp_error_handler(bsp_error_t error)
+{
+
 }
 
 /* End of file -------------------------------------------------------- */

@@ -13,8 +13,7 @@
 /* Includes ----------------------------------------------------------------- */
 #include "platform_common.h"
 #include "bsp.h"
-#include "demo.h"
-#include "st25r3911.h"
+#include "sys_nfc.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define EXAMPLE_ESP_WIFI_SSID "A06.11"
@@ -37,55 +36,17 @@ static void m_wifi_event_handler(void *arg, esp_event_base_t event_base,
 static void m_wifi_init_sta(void);
 
 /* Function definitions ----------------------------------------------------- */
-
-static void sys_nfc_check_task(void *p_param)
-{
-  while (1)
-  {
-    vTaskDelay(pdMS_TO_TICKS(1000));
-  }
-}
-
 void sys_boot(void)
 {
   // Board Support Package init
   bsp_init();
 
-  xTaskCreatePinnedToCore(sys_nfc_check_task, "nfc_check_task", 3072, NULL, 5 - 1, NULL, 1);
-
-  // Initialize RFAL
-  rfalAnalogConfigInitialize();
-
-  if (rfalInitialize() != ERR_NONE)
-  {
-    ESP_LOGI(TAG, "Init faild: %d", rfalInitialize());
-
-    // Initialization failed - indicate on LEDs
-    while (1)
-    {
-      platformDelay(500);
-      st25r3911CheckChipID( NULL );
-    }
-  }
-
-  ESP_LOGI(TAG, "Init ok");
-  interrupt_init();
-
-  // Infinite loop
-  while (1)
-  {
-    // Run RFAL Worker
-    rfalWorker();
-
-    // Run Demo Application
-    demoCycle();
-    vTaskDelay(pdMS_TO_TICKS(10));
-  }
+  sys_nfc_init();
 }
 
 void sys_run(void)
 {
-  vTaskDelay(pdMS_TO_TICKS(100));
+  vTaskDelay(pdMS_TO_TICKS(1000));
 }
 
 /* Private function --------------------------------------------------------- */
