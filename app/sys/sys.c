@@ -17,8 +17,8 @@
 #include "sys_mqtt.h"
 
 /* Private defines ---------------------------------------------------------- */
-#define EXAMPLE_ESP_WIFI_SSID "ABC"
-#define EXAMPLE_ESP_WIFI_PASS "hihikhung96"
+#define EXAMPLE_ESP_WIFI_SSID "A6.11"
+#define EXAMPLE_ESP_WIFI_PASS "Khongcomatkhau"
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
@@ -29,6 +29,9 @@ static EventGroupHandle_t m_wifi_event_group;
 
 /* Private macros ----------------------------------------------------------- */
 /* Private enumerate/structure ---------------------------------------------- */
+#define NFC_TASK_STACK_SIZE          (4096 / sizeof(StackType_t))
+#define NFC_TASK_PRIORITY            (25)
+
 /* Private variables -------------------------------------------------------- */
 /* Public variables --------------------------------------------------------- */
 /* Private function prototypes ---------------------------------------------- */
@@ -37,16 +40,26 @@ static void m_wifi_event_handler(void *arg, esp_event_base_t event_base,
 static void m_wifi_init_sta(void);
 
 /* Function definitions ----------------------------------------------------- */
-void sys_boot(void)
-{
-  // Board Support Package init
-  bsp_init();
 
+void task_wifi(void *p_param)
+{
   m_wifi_init_sta();
 
   sys_mqtt_init();
 
   sys_nfc_init();
+
+  while (1)
+  {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+}
+void sys_boot(void)
+{
+  // Board Support Package init
+  bsp_init();
+
+  xTaskCreatePinnedToCore(task_wifi, "nfc_task", NFC_TASK_STACK_SIZE, NULL, 23, NULL, 0);
 }
 
 void sys_run(void)

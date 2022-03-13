@@ -49,7 +49,7 @@ bool sys_nfc_init(void)
   ESP_LOGI(TAG, "Init ok");
   interrupt_init();
 
-  xTaskCreatePinnedToCore(sys_nfc_task, "nfc_task", NFC_TASK_STACK_SIZE, NULL, NFC_TASK_PRIORITY, NULL, 1);
+  xTaskCreatePinnedToCore(sys_nfc_task, "nfc_task", NFC_TASK_STACK_SIZE, NULL, NFC_TASK_PRIORITY, NULL, 0);
 
   return true;
 }
