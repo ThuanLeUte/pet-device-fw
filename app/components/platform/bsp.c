@@ -172,7 +172,7 @@ static inline void bsp_spi_init(void)
 
   spi_device_interface_config_t dev_cfg =
   {
-    .clock_speed_hz = 5000000,   // Clock out at 1 MHz
+    .clock_speed_hz = 7000000,   // Clock out at 1 MHz
     .mode           = 1,         // SPI mode 0
     .spics_io_num   = -1,        // CS pin
     .queue_size     = 100,       // We want to be able to queue 7 transactions at a time
