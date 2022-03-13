@@ -14,10 +14,11 @@
 #include "platform_common.h"
 #include "bsp.h"
 #include "sys_nfc.h"
+#include "sys_mqtt.h"
 
 /* Private defines ---------------------------------------------------------- */
-#define EXAMPLE_ESP_WIFI_SSID "A06.11"
-#define EXAMPLE_ESP_WIFI_PASS "tamsomot"
+#define EXAMPLE_ESP_WIFI_SSID "ABC"
+#define EXAMPLE_ESP_WIFI_PASS "hihikhung96"
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
@@ -41,12 +42,22 @@ void sys_boot(void)
   // Board Support Package init
   bsp_init();
 
+  m_wifi_init_sta();
+
+  // sys_mqtt_init();
+
   sys_nfc_init();
 }
 
 void sys_run(void)
 {
   vTaskDelay(pdMS_TO_TICKS(1000));
+
+  // vTaskDelay(pdMS_TO_TICKS(500));
+  // sys_mqtt_publish("Device_3", "Alive");
+  // if (sys_mqtt_get_state() == NFC_SETTING) {
+  //       sys_mqtt_publish("Device_3/nfc_setting", "{\r\n\t\"type\": \"response\",\r\n\t\"value\": \"NFC_ID\"\r\n}\n");
+  // }
 }
 
 /* Private function --------------------------------------------------------- */

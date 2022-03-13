@@ -19,6 +19,11 @@
 
 /* Public defines ----------------------------------------------------- */
 /* Public enumerate/structure ----------------------------------------- */
+typedef enum DEVICE_STATE
+{
+  NORMAL,
+  NFC_SETTING
+} device_state_t;
 /* Public macros ------------------------------------------------------ */
 /* Public variables --------------------------------------------------- */
 /* Public function prototypes ----------------------------------------- */
@@ -33,8 +38,9 @@
  */
 
 void sys_mqtt_init(void);
-void sys_mqtt_publish(const char *topic, const char *data, uint16_t len);
-void sys_mqtt_subcribe(const char *topic);
+void sys_mqtt_publish(const char *topic, const char *data);
+int sys_mqtt_subcribe(const char *topic);
+device_state_t sys_mqtt_get_state();
 
 #endif /* _SYS_MQTT_H */
 

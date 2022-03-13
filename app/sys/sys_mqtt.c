@@ -19,7 +19,6 @@
 #include "nvs_flash.h"
 #include "esp_event.h"
 #include "esp_netif.h"
-#include "protocol_examples_common.h"
 
 #include "lwip/sockets.h"
 #include "lwip/dns.h"
@@ -32,21 +31,16 @@
 #include "sys_mqtt.h"
 
 /* Private defines ---------------------------------------------------------- */
+#define MQTT_BROKER_ENDPOINT "mqtts://test.mosquitto.org"
 /* Private Constants -------------------------------------------------------- */
 static const char *TAG = "sys_mqtt";
 
-typedef enum DEVICE_STATE
-{
-  NORMAL,
-  NFC_SETTING
-} device_state_t;
-
-static device_state_t device_state = NORMAL;
-esp_mqtt_client_handle_t client;
+static esp_mqtt_client_handle_t client;
 
 /* Private macros ----------------------------------------------------------- */
 /* Private enumerate/structure ---------------------------------------------- */
 /* Private variables -------------------------------------------------------- */
+static device_state_t mqtt_device_state = NORMAL;
 /* Public variables --------------------------------------------------------- */
 /* Private function prototypes ---------------------------------------------- */
 static void m_sys_mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
@@ -57,7 +51,7 @@ static void m_sys_mqtt_event_receive_callback(esp_mqtt_event_handle_t event);
 void sys_mqtt_init(void)
 {
   esp_mqtt_client_config_t mqtt_cfg = {
-      .uri = MQTT_BROKER_ENDPOINT,
+      .uri = "mqtt://test.mosquitto.org",
   };
 
   client = esp_mqtt_client_init(&mqtt_cfg);
@@ -65,14 +59,19 @@ void sys_mqtt_init(void)
   esp_mqtt_client_start(client);
 }
 
-void sys_mqtt_publish(const char *topic, const char *data, uint16_t len)
+void sys_mqtt_publish(const char *topic, const char *data)
 {
   esp_mqtt_client_publish(client, topic, data, 0, 1, 0);
 }
 
-void sys_mqtt_subcribe(const char *topic)
+int sys_mqtt_subcribe(const char *topic)
 {
-  esp_mqtt_client_subscribe(client, topic, 0);
+  return esp_mqtt_client_subscribe(client, topic, 0);
+}
+
+device_state_t sys_mqtt_get_state()
+{
+  return mqtt_device_state;
 }
 
 /* Private function --------------------------------------------------------- */
@@ -87,7 +86,6 @@ void sys_mqtt_subcribe(const char *topic)
  */
 static esp_err_t m_sys_mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
-  esp_mqtt_client_handle_t client = event->client;
   int msg_id;
 
   switch (event->event_id)
@@ -152,14 +150,14 @@ static void m_sys_mqtt_event_receive_callback(esp_mqtt_event_handle_t event)
     cJSON *value = cJSON_GetObjectItem(parsed_json, "value");
     cJSON *request_key = cJSON_CreateString("request");
 
-    ESP_LOGI(TAG, "Data is %s", cJSON_GetStringValue(parsed_json));
+    // ESP_LOGI(TAG, "Data is %s", cJSON_GetStringValue(parsed_json));
 
     if (cJSON_Compare(type, request_key, true))
     {
       if (cJSON_IsTrue(value))
-        device_state = NFC_SETTING;
+        mqtt_device_state = NFC_SETTING;
       else
-        device_state = NORMAL;
+        mqtt_device_state = NORMAL;
 
       ESP_LOGI(TAG, "TOPIC=%.*s\r\n", event->topic_len, event->topic);
       ESP_LOGI(TAG, "DATA=%.*s\r\n", event->data_len, event->data);
