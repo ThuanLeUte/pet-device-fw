@@ -21,6 +21,8 @@
 /* Public enumerate/structure ----------------------------------------- */
 /* Public macros ------------------------------------------------------ */
 /* Public variables --------------------------------------------------- */
+extern TaskHandle_t g_nfc_task_handle;
+
 /* Public function prototypes ----------------------------------------- */
 /**
  * @brief         NFC application init

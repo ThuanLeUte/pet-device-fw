@@ -25,6 +25,8 @@ static const char *TAG = "sys/nfc";
 
 /* Private variables -------------------------------------------------------- */
 /* Public variables --------------------------------------------------- */
+TaskHandle_t g_nfc_task_handle;
+
 /* Private function prototypes ---------------------------------------------- */
 void sys_nfc_task(void *p_param);
 
@@ -49,7 +51,7 @@ bool sys_nfc_init(void)
   ESP_LOGI(TAG, "Init ok");
   interrupt_init();
 
-  xTaskCreatePinnedToCore(sys_nfc_task, "nfc_task", NFC_TASK_STACK_SIZE, NULL, NFC_TASK_PRIORITY, NULL, 0);
+  xTaskCreatePinnedToCore(sys_nfc_task, "nfc_task", NFC_TASK_STACK_SIZE, NULL, NFC_TASK_PRIORITY, &g_nfc_task_handle, 0);
 
   return true;
 }

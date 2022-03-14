@@ -44,6 +44,8 @@ typedef enum
 bsp_error_t;
 
 /* Public variables --------------------------------------------------- */
+extern TaskHandle_t g_gpio_task_handle;
+
 /* Public function prototypes ----------------------------------------- */
 /**
  * @brief         Bsp init

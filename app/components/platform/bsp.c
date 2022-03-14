@@ -15,13 +15,22 @@
 #include "platform_common.h"
 #include "bsp_io_11.h"
 #include "st25r3911_interrupt.h"
+#include "sys_nfc.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define MAX_HEX_STR           (4)
 #define MAX_HEX_STR_LENGTH    (128)
 #define LOG_BUFFER_SIZE       (256)
 
+#define mutex_lock(x)       while (xSemaphoreTake(x, portMAX_DELAY) != pdPASS);
+#define mutex_unlock(x)     xSemaphoreGive(x)
+#define mutex_create()      xSemaphoreCreateMutex()
+#define mutex_destroy(x)    vSemaphoreDelete(x)
+
 /* Public variables --------------------------------------------------------- */
+TaskHandle_t g_gpio_task_handle;
+static SemaphoreHandle_t _bus_spi_lock = NULL;
+
 /* Private variables -------------------------------------------------------- */
 static const char *TAG = "BSP";
 static spi_device_handle_t  m_spi_hdl;
@@ -46,18 +55,22 @@ void bsp_spi_transmit_receive(const uint8_t *tx_data, uint8_t *rx_data, uint16_t
   esp_err_t ret;
   spi_transaction_t t;
 
+  mutex_lock(_bus_spi_lock);
+
   if (0 == len)
     return;
   memset(&t, 0, sizeof(t)); // Zero out the transaction
 
-  t.length    = len * 8;    // Len is in bytes, transaction length is in bits.
-  t.tx_buffer = tx_data;    // Data
-  t.user      = (void *)1;  // D/C needs to be set to 1
+  t.length = len * 8;    // Len is in bytes, transaction length is in bits.
+  t.tx_buffer = tx_data; // Data
+  t.user = (void *)1;    // D/C needs to be set to 1
   t.rx_buffer = rx_data;
 
-  ret = spi_device_transmit(m_spi_hdl, &t);
+  ret = spi_device_polling_transmit(m_spi_hdl, &t);
 
-  assert(ret == ESP_OK); 
+  assert(ret == ESP_OK);
+
+  mutex_unlock(_bus_spi_lock);
 }
 
 void bsp_log_data(const char *format, ...)
@@ -185,6 +198,12 @@ static inline void bsp_spi_init(void)
   // Attach the LCD to the SPI bus
   ret = spi_bus_add_device(HSPI_HOST, &dev_cfg, &m_spi_hdl);
   assert(ret == ESP_OK);
+
+  if (_bus_spi_lock)
+  {
+    mutex_destroy(_bus_spi_lock);
+  }
+  _bus_spi_lock = mutex_create();
 }
 
 static xQueueHandle gpio_evt_queue = NULL;
@@ -242,7 +261,7 @@ void interrupt_init(void)
   gpio_isr_handler_add(IO_NFC_IRQ_IN_PIN, gpio_isr_handler, (void *)IO_NFC_IRQ_IN_PIN);
 
   // start gpio task
-  xTaskCreatePinnedToCore(gpio_task_example, "gpio_task_example", 2048, NULL, 3, NULL, 1);
+  xTaskCreatePinnedToCore(gpio_task_example, "gpio_task_example", 2048, NULL, 3, &g_gpio_task_handle, 1);
 }
 
 void bsp_error_handler(bsp_error_t error)
