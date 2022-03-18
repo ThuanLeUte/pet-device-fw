@@ -62,6 +62,8 @@
 #include "rfal_nfcDep.h"
 #include "rfal_isoDep.h"
 
+#include "sys_mqtt.h"
+
 /*
 ******************************************************************************
 * GLOBAL DEFINES
@@ -80,7 +82,7 @@
 /* macro to cycle through states */
 #define	NEXT_STATE()		             {state++; state %= sizeof(stateArray);}
 
-
+#define MAX_STORAGE_SIZE 100U
 
 
 /*
@@ -164,6 +166,12 @@ static ReturnCode demoNfcDepBlockingTxRx( rfalNfcDepDevice *nfcDepDev, const uin
 static ReturnCode demoIsoDepBlockingTxRx( rfalIsoDepDevice *isoDepDev, const uint8_t *txBuf, uint16_t txBufSize, uint8_t *rxBuf, uint16_t rxBufSize, uint16_t *rxActLen );
 static void demoSendNdefUri( void );
 static void demoSendAPDUs( void );
+
+static void demoAddNewNFC(uint8_t arr[]);
+static bool checkNFCisIncluded(uint8_t arr[]);
+
+static uint8_t storage_uid[MAX_STORAGE_SIZE][10U];
+static size_t curr_idx = 0U;
 
 
 /*!
@@ -378,6 +386,24 @@ bool demoPollNFCA( void )
         /* NFC-A device found                        */
         /* NFCID/UID is contained in: nfcaDev.nfcId1 */
         platformLog("ISO14443A/NFC-A card found. UID: %s\r\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
+        if (sys_mqtt_get_state() == NFC_SETTING)
+        {
+          demoAddNewNFC(nfcaDevList[0].nfcId1);
+          char data[1024];
+          sprintf(data, "{\r\n\t\"type\": \"response\",\r\n\t\"value\": \"%s\"\r\n}\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
+          sys_mqtt_publish("Device_3/nfc_setting", data);
+        } 
+        else
+        {
+          if (checkNFCisIncluded(nfcaDevList[0].nfcId1))
+          {
+            platformLog("UID %s is accessible!", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
+          } 
+          else
+          {
+            platformLog("UID %s is NOT accessible!", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
+          }
+        }
       }
        
       
@@ -928,6 +954,54 @@ ReturnCode demoNfcDepBlockingTxRx( rfalNfcDepDevice *nfcDepDev, const uint8_t *t
   /* Copy received data */
   ST_MEMMOVE( rxBuf, gRxBuf.nfcDepRxBuf.inf, MIN(*rxActLen, rxBufSize) );
   return ERR_NONE;
+}
+
+
+/*!
+ *****************************************************************************
+ * \brief Add New NFC if not yet included in storage
+ *****************************************************************************
+ */
+void demoAddNewNFC(uint8_t arr[])
+{
+  if (!checkNFCisIncluded(arr))
+  {
+    memcpy(storage_uid[curr_idx], arr, 10U);
+    curr_idx = (curr_idx+1)%MAX_STORAGE_SIZE;
+    platformLog("Add new NFC. %d\r\n", curr_idx);
+  } else {
+    platformLog("NFC has already included. \r\n");
+    }
+}
+
+/*!
+ *****************************************************************************
+ * \brief Check NFC is included in Storage or NOT
+ * 
+ * \return true if included
+ * \return fale if NOT
+ *****************************************************************************
+ */
+bool checkNFCisIncluded(uint8_t arr[])
+{
+  bool is_included = false;
+  for (uint8_t row = 0U; row <= curr_idx; row++) 
+  {
+    bool is_curr_included = true;
+    for (uint8_t col = 0U; col < 10U; col++) {
+      if (storage_uid[row][col] != arr[col])
+      {
+        is_curr_included = false;
+        break;
+      }
+    }
+    if (is_curr_included)
+    {
+      is_included = true;
+      break;
+    }
+  }
+  return is_included;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
