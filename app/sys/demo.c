@@ -62,7 +62,6 @@
 #include "rfal_nfcDep.h"
 #include "rfal_isoDep.h"
 
-#include "sys_mqtt.h"
 
 /*
 ******************************************************************************
@@ -82,7 +81,8 @@
 /* macro to cycle through states */
 #define	NEXT_STATE()		             {state++; state %= sizeof(stateArray);}
 
-#define MAX_STORAGE_SIZE 100U
+#define MAX_STORAGE_SIZE 500U
+#define NFC_MAX_LEN 8U
 
 
 /*
@@ -167,11 +167,10 @@ static ReturnCode demoIsoDepBlockingTxRx( rfalIsoDepDevice *isoDepDev, const uin
 static void demoSendNdefUri( void );
 static void demoSendAPDUs( void );
 
-static void demoAddNewNFC(uint8_t arr[]);
-static bool checkNFCisIncluded(uint8_t arr[]);
+static void demoAddNewNFC(uint8_t arr[], uint8_t len);
+static bool checkNFCisIncluded(uint8_t arr[], uint8_t len);
+static void demoStorageNFC(uint8_t data[], uint8_t len);
 
-static uint8_t storage_uid[MAX_STORAGE_SIZE][10U];
-static size_t curr_idx = 0U;
 
 
 /*!
@@ -388,14 +387,14 @@ bool demoPollNFCA( void )
         platformLog("ISO14443A/NFC-A card found. UID: %s\r\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
         if (sys_mqtt_get_state() == NFC_SETTING)
         {
-          demoAddNewNFC(nfcaDevList[0].nfcId1);
+          demoAddNewNFC(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len);
           char data[1024];
           sprintf(data, "{\r\n\t\"type\": \"response\",\r\n\t\"value\": \"%s\"\r\n}\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
           sys_mqtt_publish("Device_3/nfc_setting", data);
         } 
         else
         {
-          if (checkNFCisIncluded(nfcaDevList[0].nfcId1))
+          if (checkNFCisIncluded(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len))
           {
             platformLog("UID %s is accessible!", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
           } 
@@ -962,13 +961,12 @@ ReturnCode demoNfcDepBlockingTxRx( rfalNfcDepDevice *nfcDepDev, const uint8_t *t
  * \brief Add New NFC if not yet included in storage
  *****************************************************************************
  */
-void demoAddNewNFC(uint8_t arr[])
+void demoAddNewNFC(uint8_t arr[], uint8_t len)
 {
-  if (!checkNFCisIncluded(arr))
+  if (!checkNFCisIncluded(arr, len))
   {
-    memcpy(storage_uid[curr_idx], arr, 10U);
-    curr_idx = (curr_idx+1)%MAX_STORAGE_SIZE;
-    platformLog("Add new NFC. %d\r\n", curr_idx);
+    demoStorageNFC(arr, len);
+    platformLog("Add new NFC. Index: %d\r\n", g_nvs_setting_data.nfc.index);
   } else {
     platformLog("NFC has already included. \r\n");
     }
@@ -982,14 +980,15 @@ void demoAddNewNFC(uint8_t arr[])
  * \return fale if NOT
  *****************************************************************************
  */
-bool checkNFCisIncluded(uint8_t arr[])
+bool checkNFCisIncluded(uint8_t arr[], uint8_t len)
 {
   bool is_included = false;
-  for (uint8_t row = 0U; row <= curr_idx; row++) 
+  for (uint8_t row = 0U; row < g_nvs_setting_data.nfc.index; row++) 
   {
     bool is_curr_included = true;
-    for (uint8_t col = 0U; col < 10U; col++) {
-      if (storage_uid[row][col] != arr[col])
+    uint8_t * storage_ptr = (uint8_t *)(&g_nvs_setting_data.nfc.uid[row]);
+    for (uint8_t col = 0U; col < len; col++) {
+      if (storage_ptr[col] != arr[col])
       {
         is_curr_included = false;
         break;
@@ -1002,6 +1001,18 @@ bool checkNFCisIncluded(uint8_t arr[])
     }
   }
   return is_included;
+}
+
+/*!
+ *****************************************************************************
+ * \brief Storage NFC UID
+ *****************************************************************************
+ */
+void demoStorageNFC(uint8_t data[], uint8_t len)
+{
+  memcpy((void *)(&g_nvs_setting_data.nfc.uid[g_nvs_setting_data.nfc.index]), data, len);
+  g_nvs_setting_data.nfc.index = (g_nvs_setting_data.nfc.index+1)%MAX_STORAGE_SIZE;
+  sys_nvs_store_all();
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

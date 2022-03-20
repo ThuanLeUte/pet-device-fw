@@ -15,10 +15,11 @@
 #include "bsp.h"
 #include "sys_nfc.h"
 #include "sys_mqtt.h"
+#include "sys_nvs.h"
 
 /* Private defines ---------------------------------------------------------- */
-#define EXAMPLE_ESP_WIFI_SSID "A6.11"
-#define EXAMPLE_ESP_WIFI_PASS "Khongcomatkhau"
+#define EXAMPLE_ESP_WIFI_SSID "ABC"
+#define EXAMPLE_ESP_WIFI_PASS "hihikhung96"
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
@@ -43,7 +44,10 @@ static void m_wifi_init_sta(void);
 
 void task_wifi(void *p_param)
 {
+
   m_wifi_init_sta();
+  
+  sys_nvs_init();
 
   sys_mqtt_init();
 

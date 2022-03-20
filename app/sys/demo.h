@@ -47,6 +47,8 @@ extern "C" {
 #include "st_errno.h"
 #include "rfal_rf.h"
 #include "rfal_analogConfig.h"
+#include "sys_mqtt.h"
+#include "sys_nvs.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
