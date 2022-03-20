@@ -81,8 +81,7 @@ void sys_nvs_init(void)
     goto _LBL_END_;
 
   // Get NVS data version
-  if (nvs_get_u32(m_nvs_handle, NVS_VERSION_KEY_NAME, &nvs_ver) != OK)
-    goto _LBL_END_;
+  nvs_get_u32(m_nvs_handle, NVS_VERSION_KEY_NAME, &nvs_ver);
 
   ESP_LOGI(TAG, "Data version in NVS storage: %d ", nvs_ver);
   
@@ -115,6 +114,8 @@ void sys_nvs_init(void)
     // Load all data from NVS to RAM structure data
     sys_nvs_load_all();
   }
+
+  return;
 
 _LBL_END_:
 
@@ -150,6 +151,8 @@ void sys_nvs_store_all(void)
     if (nvs_commit(m_nvs_handle) != ESP_OK)
       goto _LBL_END_;
   }
+
+  return;
 
 _LBL_END_:
 
@@ -192,6 +195,8 @@ void sys_nvs_store(char * p_key_name, void * p_src, uint32_t len)
   if (nvs_commit(m_nvs_handle) != ESP_OK)
     goto _LBL_END_;
 
+  return;
+
 _LBL_END_:
 
   ESP_LOGE(TAG, "NVS store data error");
@@ -217,6 +222,8 @@ void sys_nvs_factory_reset(void)
 
   if (nvs_commit(m_nvs_handle) != ESP_OK)
     goto _LBL_END_;
+
+  return;
 
 _LBL_END_:
 

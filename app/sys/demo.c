@@ -1011,8 +1011,10 @@ bool checkNFCisIncluded(uint8_t arr[], uint8_t len)
 void demoStorageNFC(uint8_t data[], uint8_t len)
 {
   memcpy((void *)(&g_nvs_setting_data.nfc.uid[g_nvs_setting_data.nfc.index]), data, len);
-  g_nvs_setting_data.nfc.index = (g_nvs_setting_data.nfc.index+1)%MAX_STORAGE_SIZE;
-  sys_nvs_store_all();
+  g_nvs_setting_data.nfc.index = (g_nvs_setting_data.nfc.index + 1) % MAX_STORAGE_SIZE;
+
+  // Store data to NVS
+  SYS_NVS_STORE(nfc);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
