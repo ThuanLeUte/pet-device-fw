@@ -170,7 +170,7 @@ static void demoSendAPDUs( void );
 static void demoAddNewNFC(uint8_t arr[], uint8_t len);
 static bool checkNFCisIncluded(uint8_t arr[], uint8_t len);
 static void demoStorageNFC(uint8_t data[], uint8_t len);
-
+static void demoRemoveNFC(char *data);
 
 
 /*!
@@ -194,7 +194,11 @@ void demoCycle( void )
 	// 		/* Debounce button */
 	// 		while( platformGpioIsLow(PLATFORM_USER_BUTTON_PORT, PLATFORM_USER_BUTTON_PIN) );
 	// }
-  
+  if ((sys_mqtt_get_state() == NORMAL) && sys_mqtt_is_request_deleted())
+  {
+    demoRemoveNFC(sys_mqtt_get_nfc_tobe_deleted());
+    sys_mqtt_publish("Device_3/up", "{\r\n\t\"type\": \"res\",\r\n\t\"data\":\r\n\t{\r\n\t\t\"req\": \"del_nfc\",\r\n\t\t\"res\": \"ok\"\r\n\t}\r\n}\n");
+  }
   switch( stateArray[state] )
   {
     case DEMO_ST_FIELD_OFF:
@@ -394,14 +398,21 @@ bool demoPollNFCA( void )
         } 
         else
         {
-          if (checkNFCisIncluded(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len))
+          bool const permission = checkNFCisIncluded(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len);
+          if (permission)
           {
             platformLog("UID %s is accessible!", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
+
           } 
           else
           {
             platformLog("UID %s is NOT accessible!", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
+            // Turn on motor
+            // TBD
           }
+          char data[1024];
+          sprintf(data, "{\r\n\t\"type\": \"nt\",\r\n\t\"data\":\r\n\t{\r\n\t\t\"nt\": \"nfc_scan\",\r\n\t\t\"nfc_id\": \"%s\",\r\n\t\t\"permission\": %d\r\n\t}\r\n}\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len), permission);
+          sys_mqtt_publish("Device_3/up", data);
         }
       }
        
@@ -1015,6 +1026,32 @@ void demoStorageNFC(uint8_t data[], uint8_t len)
 
   // Store data to NVS
   SYS_NVS_STORE(nfc);
+}
+
+/*!
+ *****************************************************************************
+ * \brief Remove NFC UID
+ *****************************************************************************
+ */
+void demoRemoveNFC(char * data)
+{
+  const uint16_t data_len = strlen(data);
+  for (uint8_t row = 0U; row < g_nvs_setting_data.nfc.index; row++) 
+  {
+    uint8_t curr_nfc_byte[data_len/2];
+    memcpy(curr_nfc_byte, (void *)(&g_nvs_setting_data.nfc.uid[row]), data_len/2);
+    if (strcmp(data, hex2Str(curr_nfc_byte, data_len/2)) == 0)
+    {
+      for (uint8_t idx = row; idx < (g_nvs_setting_data.nfc.index - 1); idx++)
+      {
+        memcpy((void *)(&g_nvs_setting_data.nfc.uid[idx]), (void *)(&g_nvs_setting_data.nfc.uid[idx+1]), data_len/2);
+      }
+      g_nvs_setting_data.nfc.index --;
+      // Store data to NVS
+      SYS_NVS_STORE(nfc);
+      return;
+    }
+  }
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -41,6 +41,8 @@ static esp_mqtt_client_handle_t client;
 /* Private enumerate/structure ---------------------------------------------- */
 /* Private variables -------------------------------------------------------- */
 static device_state_t mqtt_device_state = NORMAL;
+static char * NFC_to_be_deleted;
+static bool is_request_deleted = false;
 /* Public variables --------------------------------------------------------- */
 /* Private function prototypes ---------------------------------------------- */
 static void m_sys_mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
@@ -53,7 +55,7 @@ void sys_mqtt_init(void)
   esp_mqtt_client_config_t mqtt_cfg = {
       .uri = "mqtt://test.mosquitto.org",
   };
-
+  NFC_to_be_deleted = malloc(64U);
   client = esp_mqtt_client_init(&mqtt_cfg);
   esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, m_sys_mqtt_event_handler, client);
   esp_mqtt_client_start(client);
@@ -94,6 +96,7 @@ static esp_err_t m_sys_mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
 
     msg_id = sys_mqtt_subcribe("Device_3/nfc_setting");
+    msg_id = sys_mqtt_subcribe("Device_3/down");
     // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
     break;
 
@@ -163,4 +166,35 @@ static void m_sys_mqtt_event_receive_callback(esp_mqtt_event_handle_t event)
       ESP_LOGI(TAG, "DATA=%.*s\r\n", event->data_len, event->data);
     }
   }
+  else if (strcmp(topic_name, "Device_3/down") == 0)
+  {
+    cJSON *parsed_json = cJSON_Parse(event->data);
+    cJSON *type = cJSON_GetObjectItem(parsed_json, "type");
+    cJSON *data = cJSON_GetObjectItem(parsed_json, "data");
+    cJSON *data_req = cJSON_GetObjectItem(data, "req");
+    cJSON *data_ncf = cJSON_GetObjectItem(data, "nfc_id");
+
+    cJSON *request_key = cJSON_CreateString("req");
+    cJSON *request_act = cJSON_CreateString("del_nfc");
+
+    if (cJSON_Compare(type, request_key, true))
+    {
+      if (cJSON_Compare(data_req, request_act, true))
+      {
+        NFC_to_be_deleted = cJSON_GetStringValue(data_ncf);
+        is_request_deleted = true;
+      }
+    }
+  }
+  else {}
+}
+
+bool sys_mqtt_is_request_deleted() {
+  const bool tmp_is_request_deleted = is_request_deleted;
+  is_request_deleted = false;
+  return tmp_is_request_deleted;
+}
+
+char *sys_mqtt_get_nfc_tobe_deleted() {
+  return NFC_to_be_deleted;
 }

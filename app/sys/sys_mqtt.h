@@ -40,6 +40,8 @@ typedef enum DEVICE_STATE
 void sys_mqtt_init(void);
 void sys_mqtt_publish(const char *topic, const char *data);
 int sys_mqtt_subcribe(const char *topic);
+bool sys_mqtt_is_request_deleted();
+char *sys_mqtt_get_nfc_tobe_deleted();
 device_state_t sys_mqtt_get_state();
 
 #endif /* _SYS_MQTT_H */
