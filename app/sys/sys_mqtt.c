@@ -94,7 +94,9 @@ static esp_err_t m_sys_mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
   {
   case MQTT_EVENT_CONNECTED:
     ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-
+    // Remove retain message
+    sys_mqtt_publish("Device_3/down", "");
+    
     msg_id = sys_mqtt_subcribe("Device_3/nfc_setting");
     msg_id = sys_mqtt_subcribe("Device_3/down");
     // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
