@@ -230,7 +230,20 @@ static void gpio_task_example(void *arg)
 static inline void bsp_gpio_init(void)
 {
   gpio_pad_select_gpio(IO_NFC_SPI_SS);
+  gpio_pad_select_gpio(IO_MOTOR_CONTROL_DIG_PIN);
+  gpio_pad_select_gpio(IO_LED_RED_PIN);
+  gpio_pad_select_gpio(IO_LED_GREEN_PIN);
+  gpio_pad_select_gpio(IO_LED_BLUE_PIN);
+
   gpio_set_direction(IO_NFC_SPI_SS, GPIO_MODE_OUTPUT);
+  gpio_set_direction(IO_MOTOR_CONTROL_DIG_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(IO_LED_RED_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(IO_LED_GREEN_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(IO_LED_BLUE_PIN, GPIO_MODE_OUTPUT);
+
+  gpio_set_level(IO_LED_RED_PIN, 0);
+  gpio_set_level(IO_LED_BLUE_PIN, 0);
+  gpio_set_level(IO_LED_GREEN_PIN, 0);
 }
 
 void interrupt_init(void)
@@ -267,6 +280,13 @@ void interrupt_init(void)
 void bsp_error_handler(bsp_error_t error)
 {
 
+}
+
+void bsp_motor_splash_watter(void)
+{
+  gpio_set_level(IO_MOTOR_CONTROL_DIG_PIN, 1);
+  vTaskDelay(pdMS_TO_TICKS(100));
+  gpio_set_level(IO_MOTOR_CONTROL_DIG_PIN, 0);
 }
 
 /* End of file -------------------------------------------------------- */

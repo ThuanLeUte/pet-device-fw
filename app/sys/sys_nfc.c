@@ -65,8 +65,6 @@ void sys_nfc_task(void *p_param)
 
     // Run Demo Application
     demoCycle();
-
-    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 

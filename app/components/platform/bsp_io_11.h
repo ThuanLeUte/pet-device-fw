@@ -37,8 +37,14 @@ extern "C" {
 #define IO_NFC_SPI_CLK              (GPIO_NUM_25)   // NFC
 #define IO_NFC_SPI_MISO             (GPIO_NUM_32)   // NFC
 #define IO_NFC_SPI_MOSI             (GPIO_NUM_33)   // NFC
-
 #define IO_NFC_IRQ_IN_PIN           (GPIO_NUM_35)   // NFC
+
+#define IO_MOTOR_CONTROL_PWM_PIN    (GPIO_NUM_26)
+#define IO_MOTOR_CONTROL_DIG_PIN    (GPIO_NUM_27)
+
+#define IO_LED_RED_PIN              (GPIO_NUM_23)
+#define IO_LED_GREEN_PIN            (GPIO_NUM_21)
+#define IO_LED_BLUE_PIN             (GPIO_NUM_22)
 #endif
 
 /* Public enumerate/structure ----------------------------------------- */

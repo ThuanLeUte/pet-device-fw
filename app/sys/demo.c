@@ -402,13 +402,12 @@ bool demoPollNFCA( void )
           if (permission)
           {
             platformLog("UID %s is accessible!", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
-
           } 
           else
           {
             platformLog("UID %s is NOT accessible!", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
-            // Turn on motor
-            // TBD
+            
+            bsp_motor_splash_watter();
           }
           char data[1024];
           sprintf(data, "{\r\n\t\"type\": \"nt\",\r\n\t\"data\":\r\n\t{\r\n\t\t\"nt\": \"nfc_scan\",\r\n\t\t\"nfc_id\": \"%s\",\r\n\t\t\"permission\": %d\r\n\t}\r\n}\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len), permission);

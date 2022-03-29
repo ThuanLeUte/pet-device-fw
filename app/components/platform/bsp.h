@@ -86,6 +86,8 @@ void bsp_log_data(const char *format, ...);
  */
 void bsp_error_handler(bsp_error_t error);
 
+void bsp_motor_splash_watter(void);
+
 void interrupt_init(void);
 
 #endif /* BSP_H */
