@@ -29,6 +29,8 @@
 
 #include <cJSON.h>
 #include "sys_mqtt.h"
+#include "sys_wifi.h"
+#include "sys_nvs.h"
 
 /* Private defines ---------------------------------------------------------- */
 #define MQTT_BROKER_ENDPOINT "mqtts://test.mosquitto.org"
@@ -36,6 +38,7 @@
 static const char *TAG = "sys_mqtt";
 
 static esp_mqtt_client_handle_t client;
+static char aws_topic[100];
 
 /* Private macros ----------------------------------------------------------- */
 /* Private enumerate/structure ---------------------------------------------- */
@@ -43,6 +46,7 @@ static esp_mqtt_client_handle_t client;
 static device_state_t mqtt_device_state = NORMAL;
 static char * NFC_to_be_deleted;
 static bool is_request_deleted = false;
+
 /* Public variables --------------------------------------------------------- */
 /* Private function prototypes ---------------------------------------------- */
 static void m_sys_mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
@@ -63,12 +67,21 @@ void sys_mqtt_init(void)
 
 void sys_mqtt_publish(const char *topic, const char *data)
 {
-  esp_mqtt_client_publish(client, topic, data, 0, 1, 0);
+  ESP_LOGW(TAG, "MQTT publish     : %s", topic);
+  ESP_LOGW(TAG, "MQTT publish data: %s", data);
+
+  if (sys_wifi_is_connected())
+    esp_mqtt_client_publish(client, topic, data, 0, 1, 0);
 }
 
 int sys_mqtt_subcribe(const char *topic)
 {
-  return esp_mqtt_client_subscribe(client, topic, 0);
+  ESP_LOGW(TAG, "MQTT subcribe: %s", topic);
+
+  if (sys_wifi_is_connected())
+    return esp_mqtt_client_subscribe(client, topic, 0);
+
+  return 0;
 }
 
 device_state_t sys_mqtt_get_state()
@@ -95,10 +108,12 @@ static esp_err_t m_sys_mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
   case MQTT_EVENT_CONNECTED:
     ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
     // Remove retain message
-    sys_mqtt_publish("Device_3/down", "");
-    
-    msg_id = sys_mqtt_subcribe("Device_3/nfc_setting");
-    msg_id = sys_mqtt_subcribe("Device_3/down");
+    sprintf(aws_topic, "%s/down", g_nvs_setting_data.dev.qr_code);
+    sys_mqtt_publish(aws_topic, "");
+    msg_id = sys_mqtt_subcribe(aws_topic);
+
+    sprintf(aws_topic, "%s/nfc_setting", g_nvs_setting_data.dev.qr_code);
+    msg_id = sys_mqtt_subcribe(aws_topic);
     // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
     break;
 
@@ -148,7 +163,9 @@ static void m_sys_mqtt_event_receive_callback(esp_mqtt_event_handle_t event)
   topic_name = malloc(event->topic_len + 1);
   snprintf(topic_name, event->topic_len + 1, "%s", event->topic);
 
-  if (strcmp(topic_name, "Device_3/nfc_setting") == 0)
+  sprintf(aws_topic, "%s/nfc_setting", g_nvs_setting_data.dev.qr_code);
+
+  if (strcmp(topic_name, aws_topic) == 0)
   {
     cJSON *parsed_json = cJSON_Parse(event->data);
     cJSON *type = cJSON_GetObjectItem(parsed_json, "type");
@@ -168,27 +185,34 @@ static void m_sys_mqtt_event_receive_callback(esp_mqtt_event_handle_t event)
       ESP_LOGI(TAG, "DATA=%.*s\r\n", event->data_len, event->data);
     }
   }
-  else if (strcmp(topic_name, "Device_3/down") == 0)
+  else
   {
-    cJSON *parsed_json = cJSON_Parse(event->data);
-    cJSON *type = cJSON_GetObjectItem(parsed_json, "type");
-    cJSON *data = cJSON_GetObjectItem(parsed_json, "data");
-    cJSON *data_req = cJSON_GetObjectItem(data, "req");
-    cJSON *data_ncf = cJSON_GetObjectItem(data, "nfc_id");
+    sprintf(aws_topic, "%s/down", g_nvs_setting_data.dev.qr_code);
 
-    cJSON *request_key = cJSON_CreateString("req");
-    cJSON *request_act = cJSON_CreateString("del_nfc");
-
-    if (cJSON_Compare(type, request_key, true))
+    if (strcmp(topic_name, aws_topic) == 0)
     {
-      if (cJSON_Compare(data_req, request_act, true))
+      cJSON *parsed_json = cJSON_Parse(event->data);
+      cJSON *type = cJSON_GetObjectItem(parsed_json, "type");
+      cJSON *data = cJSON_GetObjectItem(parsed_json, "data");
+      cJSON *data_req = cJSON_GetObjectItem(data, "req");
+      cJSON *data_ncf = cJSON_GetObjectItem(data, "nfc_id");
+
+      cJSON *request_key = cJSON_CreateString("req");
+      cJSON *request_act = cJSON_CreateString("del_nfc");
+
+      if (cJSON_Compare(type, request_key, true))
       {
-        NFC_to_be_deleted = cJSON_GetStringValue(data_ncf);
-        is_request_deleted = true;
+        if (cJSON_Compare(data_req, request_act, true))
+        {
+          NFC_to_be_deleted = cJSON_GetStringValue(data_ncf);
+          is_request_deleted = true;
+        }
       }
     }
+    else
+    {
+    }
   }
-  else {}
 }
 
 bool sys_mqtt_is_request_deleted() {

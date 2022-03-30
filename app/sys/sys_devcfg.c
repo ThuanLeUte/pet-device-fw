@@ -12,6 +12,7 @@
 
 /* Includes ----------------------------------------------------------------- */
 #include "sys_devcfg.h"
+#include "sys.h"
 
 
 /* Private defines ---------------------------------------------------------- */
@@ -403,7 +404,7 @@ static void m_blufi_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_para
     if (m_mgr.wifi.connected)
     {
       // Send event group to system
-      // sys_event_group_set(SYS_DEVCFG_DONE_EVT);
+      sys_event_group_set(SYS_DEVCFG_DONE_EVT);
     }
     break;
   }
@@ -510,7 +511,8 @@ static void m_blufi_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_para
     // Check Device ID is set or not
     if (FLAG_QRCODE_SET_SUCCESS != g_nvs_setting_data.dev.qr_code_flag)
     {
-      g_nvs_setting_data.dev.qr_code_flag = FLAG_QRCODE_SET_SUCCESS;
+      g_nvs_setting_data.dev.qr_code_flag = FLAG_QRCODE_SET;
+      memset(g_nvs_setting_data.dev.qr_code, 0, sizeof(g_nvs_setting_data.dev.qr_code));
       strncpy(g_nvs_setting_data.dev.qr_code, (const char *)param->custom_data.data, param->custom_data.data_len);
     
       ESP_LOGI(TAG, "QR code is not set. Set Device ID: %s", g_nvs_setting_data.dev.qr_code);
@@ -519,6 +521,8 @@ static void m_blufi_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_para
     {
       ESP_LOGI(TAG, "QR code is already set successfull");
     }
+
+    SYS_NVS_STORE(dev);
 
     break;
   }

@@ -18,9 +18,13 @@
 #include "platform_common.h"
 
 /* Public defines ----------------------------------------------------- */
+#define SYS_DEVCFG_DONE_EVT               BIT1
+
 /* Public enumerate/structure ----------------------------------------- */
 /* Public macros ------------------------------------------------------ */
 /* Public variables --------------------------------------------------- */
+extern EventGroupHandle_t g_sys_evt_group;
+
 /* Public function prototypes ----------------------------------------- */
 /**
  * @brief         System boot
@@ -43,6 +47,16 @@ void sys_boot(void);
  * @return        None
  */
 void sys_run(void);
+
+/**
+ * @brief System event group set
+ */
+void sys_event_group_set(const EventBits_t bit_to_set);
+
+/**
+ * @brief System event group clear
+ */
+void sys_event_group_clear(const EventBits_t bit_to_clear);
 
 #endif /* SYSTEM_H */
 

@@ -58,6 +58,8 @@ void sys_nvs_reset_data(void)
   g_nvs_setting_data.data_version = NVS_DATA_VERSION;
 
   memset(&g_nvs_setting_data.nfc, 0, sizeof(g_nvs_setting_data.nfc));
+
+  strcpy(g_nvs_setting_data.dev.qr_code, "123456789");
 }
 
 void sys_nvs_init(void)

@@ -66,7 +66,8 @@ void sys_wifi_connect(void)
 
 void sys_wifi_update_event_handler(void)
 {
-  esp_event_loop_set_cb(m_sys_wifi_event_handler, NULL);
+  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &m_wifi_event_handler, NULL));
+  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &m_wifi_event_handler, NULL));
 }
 
 bool sys_wifi_is_connected(void)

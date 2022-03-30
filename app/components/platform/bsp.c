@@ -233,12 +233,16 @@ static inline void bsp_gpio_init(void)
   gpio_pad_select_gpio(IO_LED_RED_PIN);
   gpio_pad_select_gpio(IO_LED_GREEN_PIN);
   gpio_pad_select_gpio(IO_LED_BLUE_PIN);
+  gpio_pad_select_gpio(IO_KEY_A_PIN);
+  gpio_pad_select_gpio(IO_KEY_B_PIN);
 
   gpio_set_direction(IO_NFC_SPI_SS, GPIO_MODE_OUTPUT);
   gpio_set_direction(IO_MOTOR_CONTROL_DIG_PIN, GPIO_MODE_OUTPUT);
   gpio_set_direction(IO_LED_RED_PIN, GPIO_MODE_OUTPUT);
   gpio_set_direction(IO_LED_GREEN_PIN, GPIO_MODE_OUTPUT);
   gpio_set_direction(IO_LED_BLUE_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(IO_KEY_A_PIN, GPIO_MODE_INPUT);
+  gpio_set_direction(IO_KEY_B_PIN, GPIO_MODE_INPUT);
 
   gpio_set_level(IO_LED_RED_PIN, 0);
   gpio_set_level(IO_LED_BLUE_PIN, 0);

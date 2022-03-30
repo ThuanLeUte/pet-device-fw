@@ -145,9 +145,8 @@ static union {
 
 static bool doWakeUp = false;                /*!< by default do not perform Wake-Up               */
 static uint8_t state = DEMO_ST_FIELD_OFF;    /*!< Actual state, starting with RF field turned off */
-  
 
-
+static char aws_topic[100];
 
 /*
 ******************************************************************************
@@ -197,7 +196,10 @@ void demoCycle( void )
   if ((sys_mqtt_get_state() == NORMAL) && sys_mqtt_is_request_deleted())
   {
     demoRemoveNFC(sys_mqtt_get_nfc_tobe_deleted());
-    sys_mqtt_publish("Device_3/up", "{\r\n\t\"type\": \"res\",\r\n\t\"data\":\r\n\t{\r\n\t\t\"req\": \"del_nfc\",\r\n\t\t\"res\": \"ok\"\r\n\t}\r\n}\n");
+
+    sprintf(aws_topic, "%s/up", g_nvs_setting_data.dev.qr_code);
+
+    sys_mqtt_publish(aws_topic, "{\r\n\t\"type\": \"res\",\r\n\t\"data\":\r\n\t{\r\n\t\t\"req\": \"del_nfc\",\r\n\t\t\"res\": \"ok\"\r\n\t}\r\n}\n");
   }
   switch( stateArray[state] )
   {
@@ -394,7 +396,9 @@ bool demoPollNFCA( void )
           demoAddNewNFC(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len);
           char data[1024];
           sprintf(data, "{\r\n\t\"type\": \"response\",\r\n\t\"value\": \"%s\"\r\n}\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len));
-          sys_mqtt_publish("Device_3/nfc_setting", data);
+
+          sprintf(aws_topic, "%s/nfc_setting", g_nvs_setting_data.dev.qr_code);
+          sys_mqtt_publish(aws_topic, data);
         } 
         else
         {
@@ -411,7 +415,9 @@ bool demoPollNFCA( void )
           }
           char data[1024];
           sprintf(data, "{\r\n\t\"type\": \"nt\",\r\n\t\"data\":\r\n\t{\r\n\t\t\"nt\": \"nfc_scan\",\r\n\t\t\"nfc_id\": \"%s\",\r\n\t\t\"permission\": %d\r\n\t}\r\n}\n", hex2Str(nfcaDevList[0].nfcId1, nfcaDevList[0].nfcId1Len), permission);
-          sys_mqtt_publish("Device_3/up", data);
+
+          sprintf(aws_topic, "%s/up", g_nvs_setting_data.dev.qr_code);
+          sys_mqtt_publish(aws_topic, data);
         }
       }
        
