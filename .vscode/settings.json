@@ -9,6 +9,8 @@
         "string_view": "c",
         "demo.h": "c",
         "rfal_nfcb.h": "c",
-        "rfal_rf.h": "c"
+        "rfal_rf.h": "c",
+        "audio_mem.h": "c",
+        "esp_bt.h": "c"
     }
 }

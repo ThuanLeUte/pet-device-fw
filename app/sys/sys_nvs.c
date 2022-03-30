@@ -40,7 +40,8 @@ nvs_key_data_t;
 
 const nvs_key_data_t nvs_data_list[] =
 {
-    NVS_DATA_PAIR("0001", nfc)
+   NVS_DATA_PAIR("0001", nfc)
+  ,NVS_DATA_PAIR("0002", dev)
 };
 
 /* Private macros ----------------------------------------------------- */

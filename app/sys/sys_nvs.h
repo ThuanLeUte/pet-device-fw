@@ -26,13 +26,20 @@
 typedef struct nvs_data_struct
 {
   uint32_t data_version;      // Version of NVS data
-
+  
   struct
   {
     uint64_t uid[NUMBER_OF_PETS_SUPPORTED];
     uint16_t index;
   }
   nfc;
+
+  struct
+  {
+    char qr_code[50];      // QR code
+    uint8_t qr_code_flag;  // Flag indicate that QR code is set or not
+  } 
+  dev;
 }
 nvs_data_t;
 

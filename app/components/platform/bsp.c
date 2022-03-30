@@ -44,7 +44,6 @@ static inline void bsp_gpio_init(void);
 /* Function definitions ----------------------------------------------------- */
 void bsp_init(void)
 {
-  m_bsp_nvs_init();
   m_bsp_spiffs_init();
   bsp_gpio_init();
   bsp_spi_init();
