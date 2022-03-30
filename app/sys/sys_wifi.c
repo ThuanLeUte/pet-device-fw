@@ -34,9 +34,8 @@ static const char *TAG = "sys_wifi";
 /* Private variables -------------------------------------------------------- */
 /* Private function prototypes ---------------------------------------------- */
 static esp_err_t m_sys_wifi_event_handler(void *ctx, system_event_t *event);
-static void m_wifi_event_handler(void *arg, esp_event_base_t event_base,
-                                 int32_t event_id, void *event_data);
 static bool m_sys_wifi_connect(void);
+static esp_err_t m_sys_wifi_event_handler(void *ctx, system_event_t *event);
 
 /* Function definitions ----------------------------------------------------- */
 void sys_wifi_init(void)
@@ -51,23 +50,17 @@ void sys_wifi_init(void)
   wifi_init_config_t wifi_init_cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&wifi_init_cfg));
 
-  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &m_wifi_event_handler, NULL));
-  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &m_wifi_event_handler, NULL));
-
   // Wifi ssid manager create
   g_ssid_manager = wifi_ssid_manager_create(WIFI_MAX_STATION_NUM);
 }
 
 void sys_wifi_connect(void)
 {
+  // Init WiFi
+  ESP_ERROR_CHECK(esp_event_loop_init(m_sys_wifi_event_handler, NULL));
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_start());
-}
-
-void sys_wifi_update_event_handler(void)
-{
-  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &m_wifi_event_handler, NULL));
-  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &m_wifi_event_handler, NULL));
+  ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_MIN_MODEM)); // In this mode, 
 }
 
 bool sys_wifi_is_connected(void)
@@ -171,26 +164,6 @@ static esp_err_t m_sys_wifi_event_handler(void *ctx, system_event_t *event)
   }
 
   return ESP_OK;
-}
-
-static void m_wifi_event_handler(void *arg, esp_event_base_t event_base,
-                                 int32_t event_id, void *event_data)
-{
-  if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
-  {
-    m_sys_wifi_connect();
-  }
-  else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
-  {
-    m_sys_wifi_connect();
-    ESP_LOGI(TAG, "Connect to the AP fail");
-  }
-  else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
-  {
-    ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-    ESP_LOGI(TAG, "Got ip:" IPSTR, IP2STR(&event->ip_info.ip));
-    sys_mqtt_init();
-  }
 }
 
 /* End of file -------------------------------------------------------- */

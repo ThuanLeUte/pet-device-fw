@@ -18,9 +18,9 @@
 #include "platform_common.h"
 
 /* Public defines ----------------------------------------------------- */
-#define NVS_DATA_VERSION    (uint32_t)(0x000000A1)
+#define NVS_DATA_VERSION    (uint32_t)(0x000000A3)
 
-#define NUMBER_OF_PETS_SUPPORTED      (500)
+#define NUMBER_OF_PETS_SUPPORTED      (100)
 
 /* Public enumerate/structure ----------------------------------------- */
 typedef struct nvs_data_struct

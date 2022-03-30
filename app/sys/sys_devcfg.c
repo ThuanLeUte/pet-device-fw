@@ -403,8 +403,7 @@ static void m_blufi_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_para
     // Restart after WiFi connected
     if (m_mgr.wifi.connected)
     {
-      // Send event group to system
-      sys_event_group_set(SYS_DEVCFG_DONE_EVT);
+      esp_restart();
     }
     break;
   }

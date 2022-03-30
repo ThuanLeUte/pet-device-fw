@@ -61,26 +61,7 @@ void sys_boot(void)
 
 void sys_run(void)
 {
-  // // Check network config
-  // EventBits_t evt_bit = xEventGroupWaitBits(g_sys_evt_group, SYS_DEVCFG_DONE_EVT, true, true, pdMS_TO_TICKS(100));
-  // if (evt_bit & SYS_DEVCFG_DONE_EVT)
-  // {
-  //   ESP_LOGE(TAG, "Device config successfull");
-
-  //   // Disable bluetooth
-  //   esp_blufi_profile_deinit();
-  //   esp_bluedroid_disable();
-  //   esp_bluedroid_deinit();
-  //   esp_bt_controller_disable();
-  //   esp_bt_controller_deinit();
-
-  //   // Update wifi event handler
-  //   sys_wifi_update_event_handler();
-
-  //   sys_mqtt_init();
-  // }
-
-  if (gpio_get_level(IO_KEY_B_PIN) == 1)
+  if (gpio_get_level(IO_KEY_B_PIN) == 0)
   {
     ESP_LOGI(TAG, "Enter Wifi setting");
     sys_wifi_erase_config();
