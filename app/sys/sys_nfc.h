@@ -37,6 +37,8 @@ extern TaskHandle_t g_nfc_task_handle;
  */
 bool sys_nfc_init(void);
 
+void sys_nfc_deinit(void);
+
 #endif /* __SYS_NFC_H */
 
 /* End of file -------------------------------------------------------- */

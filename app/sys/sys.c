@@ -21,15 +21,10 @@
 #include "sys_wifi.h"
 
 /* Private defines ---------------------------------------------------------- */
-#define EXAMPLE_ESP_WIFI_SSID "A6.11"
-#define EXAMPLE_ESP_WIFI_PASS "Khongcomatkhau"
-
-#define WIFI_CONNECTED_BIT BIT0
-#define WIFI_FAIL_BIT BIT1
-
 /* Private Constants -------------------------------------------------------- */
 static const char *TAG = "sys";
 EventGroupHandle_t g_sys_evt_group;
+uint16_t m_reset_cnt = 0;
 
 /* Private macros ----------------------------------------------------------- */
 /* Private enumerate/structure ---------------------------------------------- */
@@ -68,7 +63,19 @@ void sys_run(void)
     esp_restart();
   }
 
-  vTaskDelay(pdMS_TO_TICKS(1000));
+  vTaskDelay(pdMS_TO_TICKS(2000));
+
+  // WORKAROUND: Reinit the NFC reader avoid read NFC faild
+  m_reset_cnt++;
+  if (m_reset_cnt == 6)
+  {
+    sys_nfc_deinit();
+  }
+  else if (m_reset_cnt == 7)
+  {
+    sys_nfc_init();
+    m_reset_cnt = 0;
+  }
 }
 
 void sys_event_group_set(const EventBits_t bit_to_set)

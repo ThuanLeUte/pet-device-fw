@@ -26,6 +26,7 @@ static const char *TAG = "sys/nfc";
 /* Private variables -------------------------------------------------------- */
 /* Public variables --------------------------------------------------- */
 TaskHandle_t g_nfc_task_handle;
+static bool m_nfc_deinit = false;
 
 /* Private function prototypes ---------------------------------------------- */
 void sys_nfc_task(void *p_param);
@@ -33,6 +34,8 @@ void sys_nfc_task(void *p_param);
 /* Function definitions ----------------------------------------------------- */
 bool sys_nfc_init(void)
 {
+  m_nfc_deinit = false;
+
   // Initialize RFAL
   rfalAnalogConfigInitialize();
 
@@ -56,6 +59,12 @@ bool sys_nfc_init(void)
   return true;
 }
 
+void sys_nfc_deinit(void)
+{
+  m_nfc_deinit = true;
+}
+
+/* Private function --------------------------------------------------------- */
 void sys_nfc_task(void *p_param)
 {
   while (1)
@@ -65,8 +74,15 @@ void sys_nfc_task(void *p_param)
 
     // Run Demo Application
     demoCycle();
+
+    if (m_nfc_deinit)
+      break;
   }
+
+  rfalDeinitialize();
+
+  vTaskDelete(g_nfc_task_handle);
 }
 
-/* Private function --------------------------------------------------------- */
+
 /* End of file -------------------------------------------------------------- */
