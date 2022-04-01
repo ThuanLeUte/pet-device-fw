@@ -66,16 +66,16 @@ void sys_run(void)
   vTaskDelay(pdMS_TO_TICKS(2000));
 
   // WORKAROUND: Reinit the NFC reader avoid read NFC faild
-  m_reset_cnt++;
-  if (m_reset_cnt == 6)
-  {
-    sys_nfc_deinit();
-  }
-  else if (m_reset_cnt == 7)
-  {
-    sys_nfc_init();
-    m_reset_cnt = 0;
-  }
+  // m_reset_cnt++;
+  // if (m_reset_cnt == 6)
+  // {
+  //   sys_nfc_deinit();
+  // }
+  // else if (m_reset_cnt == 7)
+  // {
+  //   sys_nfc_init();
+  //   m_reset_cnt = 0;
+  // }
 }
 
 void sys_event_group_set(const EventBits_t bit_to_set)

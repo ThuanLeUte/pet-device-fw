@@ -209,8 +209,10 @@ static xQueueHandle gpio_evt_queue = NULL;
 
 void IRAM_ATTR gpio_isr_handler(void *arg)
 {
-  uint32_t gpio_num = (uint32_t)arg;
-  xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
+  st25r3911Isr();
+  
+  // uint32_t gpio_num = (uint32_t)arg;
+  // xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
 }
 
 static void gpio_task_example(void *arg)
