@@ -21,10 +21,14 @@
 #include "sys_wifi.h"
 
 /* Private defines ---------------------------------------------------------- */
+#define SYSTEM_STATE_NW_SETUP       (0x11)
+#define SYSTEM_STATE_NORMAL         (0x22)
+
 /* Private Constants -------------------------------------------------------- */
 static const char *TAG = "sys";
 EventGroupHandle_t g_sys_evt_group;
 uint16_t m_reset_cnt = 0;
+uint8_t m_system_state;
 
 /* Private macros ----------------------------------------------------------- */
 /* Private enumerate/structure ---------------------------------------------- */
@@ -47,23 +51,50 @@ void sys_boot(void)
   {
     sys_nfc_init();
     sys_wifi_connect();
+    m_system_state = SYSTEM_STATE_NORMAL;
   }
   else
   {
+    m_system_state = SYSTEM_STATE_NW_SETUP;
     sys_devcfg_init();
   }
 }
 
 void sys_run(void)
 {
-  if (gpio_get_level(IO_KEY_B_PIN) == 0)
+  if (gpio_get_level(IO_KEY_A_PIN) == 0)
   {
     ESP_LOGI(TAG, "Enter Wifi setting");
     sys_wifi_erase_config();
     esp_restart();
   }
 
-  vTaskDelay(pdMS_TO_TICKS(2000));
+  vTaskDelay(pdMS_TO_TICKS(1000));
+
+  if (m_system_state == SYSTEM_STATE_NW_SETUP)
+  {
+    static bool toggle = true;
+    if (toggle)
+    {
+      gpio_set_level(IO_LED_RED_PIN, 0);
+      gpio_set_level(IO_LED_BLUE_PIN, 0);
+      gpio_set_level(IO_LED_GREEN_PIN, 0);
+      toggle = false;
+    }
+    else
+    {
+      toggle = true;
+      gpio_set_level(IO_LED_RED_PIN, 1);
+      gpio_set_level(IO_LED_BLUE_PIN, 1);
+      gpio_set_level(IO_LED_GREEN_PIN, 1);
+    }
+  }
+  else if (m_system_state == SYSTEM_STATE_NORMAL)
+  {
+    gpio_set_level(IO_LED_GREEN_PIN, 0);
+    gpio_set_level(IO_LED_BLUE_PIN, 1);
+    gpio_set_level(IO_LED_RED_PIN, 1);
+  }
 
   // WORKAROUND: Reinit the NFC reader avoid read NFC faild
   // m_reset_cnt++;

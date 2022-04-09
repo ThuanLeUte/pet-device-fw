@@ -46,8 +46,8 @@ extern "C" {
 #define IO_LED_GREEN_PIN            (GPIO_NUM_21)
 #define IO_LED_BLUE_PIN             (GPIO_NUM_22)
 
-#define IO_KEY_A_PIN                (GPIO_NUM_18)
-#define IO_KEY_B_PIN                (GPIO_NUM_19)
+#define IO_KEY_A_PIN                (GPIO_NUM_19)
+#define IO_KEY_B_PIN                (GPIO_NUM_18)
 #endif
 
 /* Public enumerate/structure ----------------------------------------- */
